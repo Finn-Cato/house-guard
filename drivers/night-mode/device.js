@@ -1,10 +1,12 @@
 'use strict';
 const Homey=require('homey');
+const i18n=require('../../lib/backend-i18n');
 module.exports=class NightModeDevice extends Homey.Device {
   async onInit() {
     this.stopped=false;this.syncQueue=Promise.resolve();
     this.registerCapabilityListener('onoff',async value=>{
       try{await this.homey.app.setNightMode(value);}
+      catch(error){throw i18n.error(error,this.homey);}
       finally{await this.refreshNightMode();}
     });
     this.unsubscribeNight=this.homey.app.subscribeNightMode(()=>this.refreshNightMode());
@@ -22,7 +24,7 @@ module.exports=class NightModeDevice extends Homey.Device {
   }
   async refreshNightMode() {
     try{await this.syncNightMode();}
-    catch(error){this.error('Nattstatus kunne ikke oppdateres',error);if(!this.stopped)await this.setUnavailable(error.message || this.homey.__('night.unavailable')).catch(e=>this.error(e));}
+    catch(error){this.error(i18n.t('Nattstatus kunne ikke oppdateres',{},this.homey),error);if(!this.stopped)await this.setUnavailable(error.message?i18n.text(error.message,this.homey):this.homey.__('night.unavailable')).catch(e=>this.error(e));}
   }
   onUninit(){this.stopped=true;this.unsubscribeNight?.();if(this.syncTimer)this.homey.clearInterval(this.syncTimer);}
   onDeleted(){this.onUninit();}

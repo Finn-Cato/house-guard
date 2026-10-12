@@ -31,7 +31,7 @@ function setup(savedGuest = false) {
   const app = new App(); app.engine = h.engine;
   const savedStates = []; h.engine.persist = state => { savedStates.push(structuredClone(state)); app.publishGuestMode(state.guest); };
   const timers = new Map(), homey = {
-    app, __: key => key === 'guest.device_name' ? 'Gjestemodus' : 'Venter på House Guard',
+    app, i18n:{getLanguage:()=> 'no'}, __: key => key === 'guest.device_name' ? 'Gjestemodus' : 'Venter på House Guard',
     setInterval: fn => { const id = {}; timers.set(id, fn); return id; }, clearInterval: id => timers.delete(id),
   };
   const device = new GuestDevice(); device.homey = homey;

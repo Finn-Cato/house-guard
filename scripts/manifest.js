@@ -1,14 +1,15 @@
 'use strict';
 const fs = require('node:fs');
 const title = (no, en = no) => ({ no, en });
-const text = (name, no) => ({ name, type: 'text', title: title(no) });
-const number = (name, no) => ({ name, type: 'number', title: title(no) });
-const dropdown = (name, no, options) => ({ name, type: 'dropdown', title: title(no), values: options.map(([id, no, en]) => ({ id, title: title(no, en) })) });
+const text = (name, no, en = no) => ({ name, type: 'text', title: title(no, en) });
+const number = (name, no, en) => ({ name, type: 'number', title: title(no, en) });
+const dropdown = (name, no, en, options) => ({ name, type: 'dropdown', title: title(no, en), values: options.map(([id, no, en]) => ({ id, title: title(no, en) })) });
 const manifest = {
   id: 'no.husmodus', version: require('../package.json').version, compatibility: '>=12.3.0', sdk: 3, platforms: ['local'],
   name: title('House Guard', 'House Guard'), description: title('Hjem, borte og natt med tydelige rutiner', 'Home, away and night routines with clear status'),
   category: ['tools'], brandColor: '#e8441a', permissions: ['homey:manager:api'],
   author: { name: 'House Guard' },
+  contributors: { developers: [{ name: 'Finn-Cato' }] },
   source: 'https://github.com/5olvik/house-guard', support: 'https://github.com/5olvik/house-guard/issues',
   capabilities: {alarm_status:{type:'string',title:title('Alarmstatus','Alarm status'),getable:true,setable:false,uiComponent:'sensor',icon:'/assets/icon.svg'}},
   images: { small: '/assets/images/small.png', large: '/assets/images/large.png', xlarge: '/assets/images/xlarge.png' },
@@ -34,6 +35,7 @@ const manifest = {
     pair:[{id:'list_devices',template:'list_devices',navigation:{next:'add_devices'},options:{singular:true}},{id:'add_devices',template:'add_devices'}],
   }],
   api: {
+    appApiAccess: { method:'GET', path:'/api-access' },
     alarmSounds: { method:'POST', path:'/alarm-sounds' },
     testDirectConnection: { method:'POST', path:'/direct-test' },
     saveApiKey: { method:'put', path:'/api-key' },
@@ -44,19 +46,19 @@ const manifest = {
   },
   flow: {
     actions: [
-      { id: 'answer_night_question', title: title('Registrer svar på nattspørsmålet', 'Record the answer to the night question'), hint: title('Bruk taggen Dette spørsmålet fra Når-kortet. Gamle svar ignoreres.', 'Use the This question tag from the When card. Expired replies are ignored.'), args: [text('reply', 'Dette spørsmålet'), dropdown('answer', 'Svar', [['yes','Ja','Yes'],['no','Nei','No']])] },
+      { id: 'answer_night_question', title: title('Registrer svar på nattspørsmålet', 'Record the answer to the night question'), titleFormatted: title('Registrer [[answer]] på nattspørsmålet [[reply]]', 'Record [[answer]] for night question [[reply]]'), hint: title('Bruk taggen Dette spørsmålet fra Når-kortet. Gamle svar ignoreres.', 'Use the This question tag from the When card. Expired replies are ignored.'), args: [text('reply', 'Dette spørsmålet', 'This question'), dropdown('answer', 'Svar', 'Answer', [['yes','Ja','Yes'],['no','Nei','No']])] },
       { id: 'check_integration_access', deprecated: true, title: title('Kontroller integrasjonstilgang', 'Check integration access') },
-      { id: 'set_mode', title: title('Sett modus i House Guard', 'Set House Guard mode'), args: [dropdown('mode', 'Modus', [['home', 'Hjemme', 'Home'], ['away', 'Borte', 'Away'], ['night', 'Natt', 'Night'], ['morning', 'Morgen', 'Morning']])] },
-      { id: 'set_guest', title: title('Sett gjestemodus', 'Set guest mode'), args: [dropdown('enabled', 'Gjestemodus', [['true', 'På', 'On'], ['false', 'Av', 'Off']])] },
+      { id: 'set_mode', title: title('Sett modus i House Guard', 'Set House Guard mode'), titleFormatted: title('Sett husmodus til [[mode]]', 'Set house mode to [[mode]]'), args: [dropdown('mode', 'Modus', 'Mode', [['home', 'Hjemme', 'Home'], ['away', 'Borte', 'Away'], ['night', 'Natt', 'Night'], ['morning', 'Morgen', 'Morning']])] },
+      { id: 'set_guest', title: title('Sett gjestemodus', 'Set guest mode'), titleFormatted: title('Sett gjestemodus [[enabled]]', 'Set guest mode [[enabled]]'), args: [dropdown('enabled', 'Gjestemodus', 'Guest mode', [['true', 'På', 'On'], ['false', 'Av', 'Off']])] },
       { id: 'skip_night', title: title('Hopp over automatisk nattmodus i natt', 'Skip automatic night mode tonight') },
-      { id: 'start_routine', title: title('Start navngitt rutine', 'Start named routine'), args: [{ name: 'routine', type: 'autocomplete', title: title('Rutine', 'Routine') }] },
-      { id: 'zone_idle', title: title('Rapporter inaktiv sone', 'Report inactive zone'), args: [text('zone_id', 'Sone-ID'), number('minutes', 'Inaktiv i minutter')] },
-      { id: 'night_answer', title: title('Svar på nattspørsmål', 'Answer night request'), args: [text('request_id', 'Forespørsels-ID'), text('person_id', 'Person-ID'), dropdown('answer', 'Svar', [['yes', 'Ja', 'Yes'], ['no', 'Nei', 'No'], ['error', 'Teknisk feil', 'Technical error']])] },
-      { id: 'delivery_result', title: title('Registrer leveringsresultat', 'Record delivery result'), args: [text('delivery_id', 'Leverings-ID'), text('recipient_id', 'Mottaker-ID'), dropdown('result', 'Resultat', [['accepted', 'Flow utført'], ['failed', 'Feil']]), text('detail', 'Detaljer')] },
+      { id: 'start_routine', title: title('Start navngitt rutine', 'Start named routine'), titleFormatted: title('Start rutinen [[routine]]', 'Start routine [[routine]]'), args: [{ name: 'routine', type: 'autocomplete', title: title('Rutine', 'Routine') }] },
+      { id: 'zone_idle', title: title('Rapporter inaktiv sone', 'Report inactive zone'), args: [text('zone_id', 'Sone-ID', 'Zone ID'), number('minutes', 'Inaktiv i minutter', 'Inactive for minutes')] },
+      { id: 'night_answer', title: title('Svar på nattspørsmål', 'Answer night request'), args: [text('request_id', 'Forespørsels-ID', 'Request ID'), text('person_id', 'Person-ID', 'Person ID'), dropdown('answer', 'Svar', 'Answer', [['yes', 'Ja', 'Yes'], ['no', 'Nei', 'No'], ['error', 'Teknisk feil', 'Technical error']])] },
+      { id: 'delivery_result', title: title('Registrer leveringsresultat', 'Record delivery result'), args: [text('delivery_id', 'Leverings-ID', 'Delivery ID'), text('recipient_id', 'Mottaker-ID', 'Recipient ID'), dropdown('result', 'Resultat', 'Result', [['accepted', 'Flow utført', 'Flow completed'], ['failed', 'Feil', 'Failed']]), text('detail', 'Detaljer', 'Details')] },
     ],
     conditions: [{ id: 'delivery_matches', title: title('Leveringen er gyldig og passer denne koblingen', 'The delivery is valid and matches this connection'), args: ['delivery_id', 'kind', 'person_id', 'target_id', 'notification_type', 'camera_id', 'text', 'expected_kind', 'expected_person', 'expected_target', 'expected_type', 'expected_camera', 'expected_text'].map(name => text(name, name)) }],
     triggers: [{ id: 'delivery_requested', title: title('En melding, lyd eller et spørsmål skal leveres', 'A message, sound or question needs delivery'), tokens: [
-      ...[['delivery_id', 'Leverings-ID'], ['kind', 'Type'], ['text', 'Tekst'], ['person_id', 'Person-ID'], ['request_id', 'Forespørsels-ID'], ['target_id', 'Målenhet-ID'], ['alarm_id', 'Alarm-ID'], ['zone', 'Sone'], ['reason', 'Årsak'], ['notification_type', 'Varseltype'], ['camera_id', 'Kamera-ID']].map(([name, no]) => ({ name, type: 'string', title: title(no) })),
+      ...[['delivery_id', 'Leverings-ID', 'Delivery ID'], ['kind', 'Type', 'Type'], ['text', 'Tekst', 'Text'], ['person_id', 'Person-ID', 'Person ID'], ['request_id', 'Forespørsels-ID', 'Request ID'], ['target_id', 'Målenhet-ID', 'Target device ID'], ['alarm_id', 'Alarm-ID', 'Alarm ID'], ['zone', 'Sone', 'Zone'], ['reason', 'Årsak', 'Reason'], ['notification_type', 'Varseltype', 'Notification type'], ['camera_id', 'Kamera-ID', 'Camera ID']].map(([name, no, en]) => ({ name, type: 'string', title: title(no, en) })),
       { name: 'volume', type: 'number', title: title('Volum', 'Volume') },
     ] }],
   },
@@ -64,11 +66,14 @@ const manifest = {
 manifest.flow.triggers.push(...require('../lib/simple-flows').definitions());
 manifest.flow.triggers.push(require('../lib/scene-flows').definition,require('../lib/sleep-flows').definition);
 manifest.flow.actions.push(...require('../lib/sensor-flows').definitions());
+for (const card of manifest.flow.actions.filter(card => ['enable_alarm_sensor', 'disable_alarm_sensor'].includes(card.id))) {
+  card.titleFormatted = title(`${card.id === 'enable_alarm_sensor' ? 'Aktiver' : 'Deaktiver'} [[sensor]] for [[mode]]`, `${card.id === 'enable_alarm_sensor' ? 'Enable' : 'Disable'} [[sensor]] for [[mode]]`);
+}
 for (const [type, cards] of Object.entries(require('../lib/environment-flows').definitions())) manifest.flow[type].push(...cards);
 for (const cards of Object.values(manifest.flow)) for (const card of cards) {
   if (['integration_event','zone_idle','night_answer','delivery_result','delivery_matches','delivery_requested'].includes(card.id)) card.deprecated = true;
 }
-for (const card of [...manifest.flow.actions, ...manifest.flow.conditions]) {
-  if (card.args?.length) card.titleFormatted = title(`${card.title.no}: ${card.args.map(arg => `[[${arg.name}]]`).join(' · ')}`, `${card.title.en}: ${card.args.map(arg => `[[${arg.name}]]`).join(' · ')}`);
+for (const cards of Object.values(manifest.flow)) for (const card of cards) {
+  if (card.args?.length && !card.titleFormatted) card.titleFormatted = title(`${card.title.no}: ${card.args.map(arg => `[[${arg.name}]]`).join(' · ')}`, `${card.title.en}: ${card.args.map(arg => `[[${arg.name}]]`).join(' · ')}`);
 }
 fs.writeFileSync('app.json', JSON.stringify(manifest, null, 2) + '\n');

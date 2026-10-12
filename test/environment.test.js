@@ -42,8 +42,13 @@ for(const mode of ['home','away','night','unknown'])test('Brann og vann virker u
   assert.deepEqual(pushes(h).map(([,data])=>data.notificationType),['critical','normal']);
 });
 
-for(const option of ['disabled','observing'])test('Ingen sideeffekter under '+option,async()=>{
-  const h=harness(c=>{if(option==='disabled')c.environment.enabled=false;else c.observation=true;});h.event('smoke','alarm_smoke',true);h.update();await h.environment.drain();assert.deepEqual(h.calls,[]);assert.deepEqual(h.events,[]);
+test('Grunnoppsett som ikke er fullført blokkerer fortsatt varsler og handlinger',async()=>{
+  const h=harness(c=>{c.observation=true;});h.event('smoke','alarm_smoke',true);h.update();await h.environment.drain();assert.deepEqual(h.calls,[]);assert.deepEqual(h.events,[]);
+});
+
+test('Et gammelt av-valg kan ikke stoppe overvåking av valgte brann- og vannsensorer',async()=>{
+  const h=harness(c=>{c.environment.enabled=false;});h.event('smoke','alarm_smoke',true);h.event('water','alarm_water',true);await h.environment.drain();
+  assert.equal(pushes(h).length,2);assert.equal(h.environment.status().enabled,true);assert.equal(h.events.filter(([event])=>event==='started').length,2);
 });
 
 test('Testmodus, temperatur og innbruddssensorer utløser ikke brann/vann; ekte røyk under test gjør det',async()=>{
@@ -127,7 +132,7 @@ test('Vannstyring bekrefter bare elektrisk AV; opphør åpner aldri vannet',asyn
 test('Endret varseloppsett eller avsluttet alarm avbryter usendte fysiske tiltak',async()=>{
   const h=harness(c=>{c.environment.responses.water.shutoff={enabled:true,deviceId:'valve',validated:true};});let release;
   const waiting=new Promise(r=>{release=r;});h.hooks.set=async()=>waiting;
-  h.event('water','alarm_water',true);await Promise.resolve();h.config.environment.enabled=false;h.environment.configure();release();await h.environment.drain();assert.equal(h.calls.filter(c=>c[0]==='set').length,0);
+  h.event('water','alarm_water',true);await Promise.resolve();h.config.environment.responses.water.shutoff.enabled=false;h.environment.configure();release();await h.environment.drain();assert.equal(h.calls.filter(c=>c[0]==='set').length,0);
 });
 
 test('Manglende API-nøkkel gir tydelig leveringsfeil, men tidslinjen fungerer',async()=>{
@@ -142,12 +147,34 @@ test('Stopp av appen avbryter ventende leveringer',async()=>{
   const h=harness();h.event('smoke','alarm_smoke',true);h.environment.close();await h.environment.drain();assert.equal(pushes(h).length,0);
 });
 
-test('Gamle oppsett får deaktivert Brann og vann uten å endre etablerte rutiner',()=>{
-  const old=defaults();delete old.environment;const before=structuredClone(old.routines);const c=validate(old);assert.equal(c.environment.enabled,false);assert.deepEqual(c.environment.sensors,[]);assert.deepEqual(c.routines,before);
+test('Gamle oppsett får automatisk Brann og vann uten å velge sensorer eller endre etablerte rutiner',()=>{
+  const old=defaults();delete old.environment;const before=structuredClone(old.routines);const c=validate(old);assert.equal(c.environment.enabled,true);assert.deepEqual(c.environment.sensors,[]);assert.deepEqual(c.routines,before);
+});
+
+test('Lagrede av-valg og importer normaliseres til på uten å endre sensorutvalg eller varselvalg',()=>{
+  for(const enabled of [false,undefined,null,'false']){
+    const old=defaults();old.environment.enabled=enabled;old.environment.sensors=[{deviceId:'water',capability:'alarm_water'}];old.environment.responses.water.critical=true;
+    const before=structuredClone(old),result=validate(old);assert.equal(result.environment.enabled,true);
+    assert.deepEqual(result.environment.sensors,before.environment.sensors);assert.deepEqual(result.environment.responses,before.environment.responses);assert.deepEqual(old,before);
+    assert.deepEqual(validate(result),result);
+  }
+});
+
+test('Tomt sensorutvalg velger ingen sensor automatisk og utløser ingen hendelse eller handling',async()=>{
+  const h=harness(c=>{c.environment.sensors=[];});h.event('smoke','alarm_smoke',true);h.event('water','alarm_water',true);h.update();await h.environment.drain();
+  assert.equal(h.environment.status().enabled,true);assert.deepEqual(h.environment.status().incidents,[]);assert.deepEqual(h.calls,[]);assert.deepEqual(h.events,[]);
+});
+
+test('Et gammelt globalt av-flagg kan heller ikke avbryte en allerede ventende valgt vannstenging',async()=>{
+  const h=harness(c=>{c.environment.responses.water.shutoff={enabled:true,deviceId:'valve',validated:true};});let release;
+  const waiting=new Promise(resolve=>{release=resolve;});h.hooks.set=async()=>waiting;
+  h.event('water','alarm_water',true);await Promise.resolve();const generation=h.environment.generation;
+  h.config.environment.enabled=false;h.environment.configure();assert.equal(h.environment.generation,generation);
+  release();await h.environment.drain();assert.equal(h.calls.filter(call=>call[0]==='set').length,1);
 });
 
 test('Konfigurasjonen avviser feil sensor, duplikater, uvalidert vannstyring og ulovlig opplåsing',()=>{
-  for(const edit of [c=>{c.environment.enabled=true;},c=>{c.environment.sensors=[{deviceId:'x',capability:'measure_temperature'}];},c=>{c.environment.sensors=[{deviceId:'x',capability:'alarm_water'},{deviceId:'x',capability:'alarm_water'}];},c=>{c.environment.responses.water.shutoff={enabled:true,deviceId:'valve',validated:false};},c=>{c.environment.responses.water.unlockDoor=true;},c=>{c.environment.responses.fire.repeatSeconds=0;},c=>{c.environment.responses.fire.imageDeviceIds=['1','2','3','4'];}]) {const c=defaults();edit(c);assert.throws(()=>validate(c));}
+  for(const edit of [c=>{c.environment.sensors=[{deviceId:'x',capability:'measure_temperature'}];},c=>{c.environment.sensors=[{deviceId:'x',capability:'alarm_water'},{deviceId:'x',capability:'alarm_water'}];},c=>{c.environment.responses.water.shutoff={enabled:true,deviceId:'valve',validated:false};},c=>{c.environment.responses.water.unlockDoor=true;},c=>{c.environment.responses.fire.repeatSeconds=0;},c=>{c.environment.responses.fire.imageDeviceIds=['1','2','3','4'];}]) {const c=defaults();edit(c);assert.throws(()=>validate(c));}
 });
 
 test('Automatisk sensorvalg støtter alarm-underfunksjoner og unngår temperatur-/apparatmålinger',()=>{
@@ -172,7 +199,7 @@ test('HomeyAdapter inkluderer miljøsensorer og valgte tiltak selv uten innbrudd
 test('Flow-kort filtrerer alarmtype, deler riktig sensor/rom og kvitterer uten å fjerne sensoralarm',async()=>{
   const h=harness(),cards=new Map(),sent=[];
   const card=id=>{if(!cards.has(id))cards.set(id,{registerRunListener:fn=>cards.get(id).run=fn,trigger:async(tokens,state)=>sent.push({id,tokens,state})});return cards.get(id);};
-  const app={environment:h.environment,homey:{flow:{getTriggerCard:card,getConditionCard:card,getActionCard:card}}},flows=require('../lib/environment-flows');flows.register(app);
+  const app={environment:h.environment,homey:{i18n:{getLanguage:()=> 'no'},flow:{getTriggerCard:card,getConditionCard:card,getActionCard:card}}},flows=require('../lib/environment-flows');flows.register(app);
   assert.equal(await card('environment_alarm_active').run({type:'water'}),false);h.event('water','alarm_water',true);await h.environment.drain();
   await flows.emit(app,'started',h.environment.context(h.environment.current('water')));assert.equal(sent[0].tokens.zone,'Bad');assert.equal(sent[0].tokens.sensor,'Vannsensor');
   assert.equal(await card('environment_alarm_started').run({type:'fire'},sent[0].state),false);assert.equal(await card('environment_alarm_started').run({type:'water'},sent[0].state),true);assert.equal(await card('environment_alarm_active').run({type:'water'}),true);

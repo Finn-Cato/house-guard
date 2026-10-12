@@ -69,8 +69,12 @@ test('API-frakobling eller manglende fersk avlesning gir ikke en ny sensorfeil',
   const x=fixture();x.update();x.advance(25*HOUR);x.h.tick();assert.equal(x.alerts.length,0);x.snapshot.connected=false;x.update();assert.equal(x.alerts.length,0);x.snapshot.connected=true;x.update();assert.equal(x.alerts.length,1);
 });
 
-for(const option of ['monitoring','health','observation'])test('Ingen varsel når '+option+' er av eller under oppsett',()=>{
-  const x=fixture(c=>{if(option==='monitoring')c.environment.enabled=false;else if(option==='health')c.environment.waterHealth.enabled=false;else c.observation=true;});x.snapshot.devices.water.capabilities.measure_temperature.updatedAt=x.now()-25*HOUR;x.update();x.h.tick();assert.equal(x.alerts.length,0);assert.equal(x.h.status().sensors[0].status,'paused');
+for(const option of ['health','observation'])test('Ingen varsel når '+option+' er av eller under oppsett',()=>{
+  const x=fixture(c=>{if(option==='health')c.environment.waterHealth.enabled=false;else c.observation=true;});x.snapshot.devices.water.capabilities.measure_temperature.updatedAt=x.now()-25*HOUR;x.update();x.h.tick();assert.equal(x.alerts.length,0);assert.equal(x.h.status().sensors[0].status,'paused');
+});
+
+test('Et tidligere av-valg for Brann og vann stopper ikke valgte vannsensorers rapportkontroll',()=>{
+  const x=fixture(c=>{c.environment.enabled=false;});x.snapshot.devices.water.capabilities.measure_temperature.updatedAt=x.now()-25*HOUR;x.update();assert.equal(x.alerts.length,1);assert.equal(x.h.status().sensors[0].status,'stale');
 });
 
 test('Fjerning av valgt sensor er en oppsettsendring, ikke en falsk gjenopprettingsmelding',()=>{

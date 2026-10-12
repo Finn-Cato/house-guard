@@ -152,6 +152,16 @@ test('Name and presence-rule migration persists once without changing actions, s
  const Upgrade=load('app.js',Adapter);const init=async()=>{const app=new Upgrade();app.log=()=>{};app.error=()=>{};app.registerCards=()=>{};app.refresh=async()=>{};app.homey={clock:{getTimezone:()=>'Europe/Oslo'},settings:{get:k=>store[k],set:(k,v)=>store[k]=v},setInterval:()=>1};await app.onInit();return app;};
  const app=await init();assert.equal(app.engine.config.revision,72);assert.equal(app.engine.config.routines[0].name,'Siste Person forlater');assert.deepEqual(app.engine.config.routines[0].actions,before.routines[0].actions);assert.equal(app.engine.config.routines[0].enabled,false);assert(app.engine.config.morning.requireHome);assert(app.engine.config.security.automation.away);assert.equal(app.intrusion.state.mode,'armed');assert.equal((await init()).engine.config.revision,72);
 });
+
+test('Legacy fire/water off switch migrates once while keeping chosen sensors, responses and armed intrusion state',async()=>{
+ const old=defaults();old.revision=90;old.observation=false;old.security.alarmDeviceId=ID;old.environment.enabled=false;old.environment.sensors=[{deviceId:'smoke',capability:'alarm_smoke'}];old.environment.responses.fire.critical=false;
+ const before=structuredClone(old),alarm=new Intrusion({config:old,persist:()=>{}});alarm.state.mode='armed';let alarmStored;alarm.persist=state=>{alarmStored=state;};alarm.commit();
+ const store={'husmodus.config.v1':old,'houseguard.intrusion.v1':alarmStored};class Adapter{constructor(){this.catalogue={devices:{}};}async connect(){}}
+ const Upgrade=load('app.js',Adapter),init=async()=>{const app=new Upgrade();app.log=()=>{};app.error=()=>{};app.registerCards=()=>{};app.refresh=async()=>{};app.homey={clock:{getTimezone:()=> 'Europe/Oslo'},settings:{get:key=>store[key],set:(key,value)=>store[key]=value},setInterval:()=>1};await app.onInit();return app;};
+ const app=await init(),expected=structuredClone(before);expected.environment.enabled=true;expected.revision=91;
+ assert.deepEqual(app.engine.config,expected);assert.equal(app.intrusion.state.mode,'armed');assert.deepEqual(store['husmodus.config.v1'],expected);
+ assert.equal((await init()).engine.config.revision,91);
+});
 test('Upgrade removes an external panel, old pending runs and alarm state, preserving other configuration',async()=>{
   const old=defaults();old.security.alarmDeviceId='old-panel';old.observation=false;old.people.presence=['resident'];old.security.lockDeviceId='lock';
   const store={'husmodus.config.v1':old,'husmodus.runtime.v1':{guest:true,alarm:{active:true},runs:[{}]}};

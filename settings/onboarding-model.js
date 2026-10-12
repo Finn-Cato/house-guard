@@ -3,6 +3,9 @@
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.HouseGuardOnboarding = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+  const t = (source, values = []) => typeof HouseGuardI18n === 'undefined' ? String(source).replace(/\{(\d+)\}/g, (_, index) => String(values[index] ?? '')) : HouseGuardI18n.t(source, values);
+  const locale = () => typeof HouseGuardI18n === 'undefined' ? 'nb-NO' : HouseGuardI18n.locale;
+
   const NATIVE_ALARM = 'house-guard-internal-alarm';
   const alarmEvents = ['alarm', 'arming', 'entryDelay', 'activeSensor', 'alarmOff'];
   const retired = ['guestOn', 'guestOff'];
@@ -46,18 +49,18 @@
     const booleanSensor = sensor => available(sensor.deviceId) && typeof device(sensor.deviceId).capabilities?.[sensor.capability]?.value === 'boolean';
     const presentIds = list(config.people?.presence);
     const unavailablePeople = presentIds.filter(id => !personAvailable(id) || (status.people && typeof status.people[id]?.present !== 'boolean'));
-    add('people', 'Hvem bor her?', presentIds.length > 0 && !unavailablePeople.length,
-      !presentIds.length ? 'Velg minst én beboer som skal telle med når huset er hjemme eller borte.' : unavailablePeople.length ? `Tilstedeværelse mangler for ${unavailablePeople.map(name).join(', ')}. Kontroller personene i Homey.` : `${presentIds.length} valgte beboere er tilgjengelige.`, 'people');
-    if (typeof status.connected === 'boolean') add('homey', 'Kontakt med Homey', status.connected,
-      status.connected ? 'Personer og enheter kan leses fra Homey.' : 'Vent på forbindelsen til Homey og oppdater status.', 'connection');
+    add('people', t("Hvem bor her?"), presentIds.length > 0 && !unavailablePeople.length,
+      !presentIds.length ? t("Velg minst én beboer som skal telle med når huset er hjemme eller borte.") : unavailablePeople.length ? t("Tilstedeværelse mangler for {0}. Kontroller personene i Homey.", [unavailablePeople.map(name).join(', ')]) : t("{0} valgte beboere er tilgjengelige.", [presentIds.length]), 'people');
+    if (typeof status.connected === 'boolean') add('homey', t("Kontakt med Homey"), status.connected,
+      status.connected ? t("Personer og enheter kan leses fra Homey.") : t("Vent på forbindelsen til Homey og oppdater status."), 'connection');
     const nightIds = list(config.people?.night);
     // Motion morning uses the presence selection, not the night selection.
     // Reopening guidance must not turn a valid motion-only setup into an error.
     const motionOnly = config.morning?.motion?.enabled && !config.night?.automatic && !config.morning?.scheduled;
     if ((features.night && !motionOnly) || config.night?.automatic || config.morning?.scheduled || nightIds.length) {
       const unavailableNight = nightIds.filter(id => !presentIds.includes(id) || !personAvailable(id));
-      add('night-people', 'Hvem teller med om natten?', nightIds.length > 0 && !unavailableNight.length,
-        !nightIds.length ? 'Velg minst én beboer som skal telle med i nattmodus og vanlig morgenrutine.' : unavailableNight.length ? `Kontroller nattutvalget: ${unavailableNight.map(name).join(', ')}. Personene må være tilgjengelige og valgt som beboere.` : `${nightIds.length} tilgjengelige beboere teller med om natten.`, 'night');
+      add('night-people', t("Hvem teller med om natten?"), nightIds.length > 0 && !unavailableNight.length,
+        !nightIds.length ? t("Velg minst én beboer som skal telle med i nattmodus og vanlig morgenrutine.") : unavailableNight.length ? t("Kontroller nattutvalget: {0}. Personene må være tilgjengelige og valgt som beboere.", [unavailableNight.map(name).join(', ')]) : t("{0} tilgjengelige beboere teller med om natten.", [nightIds.length]), 'night');
     }
 
     const activeRoutines = routines(config).filter(r => r.enabled !== false);
@@ -67,28 +70,28 @@
     const audioNeeded = actions.some(a => ['speak', 'sound'].includes(a.kind)) || responses.some(r => list(r.audio).length);
     const personStatusNeeded = list(config.people?.night).length > 0 || config.night?.wakeArrival || config.morning?.motion?.enabled || actions.some(a => a.kind === 'person');
     const flowNeeded = actions.some(a => a.kind === 'flow');
-    const reasons = [flowNeeded && 'starte Flows', notificationNeeded && 'sende varsler', audioNeeded && 'spille lyd', personStatusNeeded && 'endre sovestatus', config.night?.automatic && 'sende nattspørsmål'].filter(Boolean);
+    const reasons = [flowNeeded && t("starte Flows"), notificationNeeded && t("sende varsler"), audioNeeded && t("spille lyd"), personStatusNeeded && t("endre sovestatus"), config.night?.automatic && t("sende nattspørsmål")].filter(Boolean);
     const direct = data.direct || catalog.direct || {};
-    add('direct-api', 'API-nøkkel', direct.configured === true && direct.ready === true,
-      reasons.length ? (direct.configured && direct.ready ? `Forbindelsen er klar til å ${reasons.join(', ')}.` : `Koble til Homey for å ${reasons.join(', ')}.`) : 'Valgfritt for grunnleggende tilstedeværelse. Flows, pushvarsler, lyd og endring av personstatus trenger direkte forbindelse.', 'connection', reasons.length > 0);
+    add('direct-api', t("API-nøkkel"), direct.configured === true && direct.ready === true,
+      reasons.length ? (direct.configured && direct.ready ? t("Forbindelsen er klar til å {0}.", [reasons.join(', ')]) : t("Koble til Homey for å {0}.", [reasons.join(', ')])) : t("Valgfritt for grunnleggende tilstedeværelse. Flows, pushvarsler, lyd og endring av personstatus trenger direkte forbindelse."), 'connection', reasons.length > 0);
 
     if (features.alarm || native(config)) {
-      add('alarm-enabled', 'House Guard-alarm', native(config), native(config) ? 'Den innebygde alarmen er valgt.' : 'Slå på House Guard-alarm for å bruke alarmfunksjonen.', 'alarm');
+      add('alarm-enabled', t("House Guard-alarm"), native(config), native(config) ? t("Den innebygde alarmen er valgt.") : t("Slå på House Guard-alarm for å bruke alarmfunksjonen."), 'alarm');
       if (native(config)) {
         const sensors = list(config.security?.intrusion?.sensors);
         // Missing automation fields use the same true defaults as alarm-automation.js.
-        const modes = [['full', 'away', 'Bortealarm'], ['partial', 'night', 'Nattalarm']].filter(([, event]) => event==='away' || config.security?.automation?.[event] !== false);
+        const modes = [['full', 'away', t("Bortealarm")], ['partial', 'night', t("Nattalarm")]].filter(([, event]) => event==='away' || config.security?.automation?.[event] !== false);
         const checkSensors = (id, title, selected) => {
           const bad = selected.filter(sensor => !booleanSensor(sensor));
           add(id, title, selected.length > 0 && !bad.length,
-            !selected.length ? `Velg minst én sensor for ${title.toLocaleLowerCase('nb-NO')}.` : bad.length ? `Kontroller sensorene: ${unique(bad.map(s => device(s.deviceId)?.name || s.deviceId)).join(', ')}. Status må være kjent i Homey.` : `${selected.length} valgte sensorer har kjent status. Aktive sensorer tas med når de blir inaktive.`, 'alarm');
+            !selected.length ? t("Velg minst én sensor for {0}.", [title.toLocaleLowerCase(locale())]) : bad.length ? t("Kontroller sensorene: {0}. Status må være kjent i Homey.", [unique(bad.map(s => device(s.deviceId)?.name || s.deviceId)).join(', ')]) : t("{0} valgte sensorer har kjent status. Aktive sensorer tas med når de blir inaktive.", [selected.length]), 'alarm');
         };
         if (modes.length) for (const [mode, , title] of modes) checkSensors(`alarm-${mode}`, title, sensors.filter(s => s[mode] === true));
-        else checkSensors('alarm-sensors', 'Alarmsensorer', sensors.filter(s => s.full || s.partial));
+        else checkSensors('alarm-sensors', t("Alarmsensorer"), sensors.filter(s => s.full || s.partial));
         if (config.observation && data.intrusion) {
           const intrusion = data.intrusion;
           const idle = intrusion.mode === 'disarmed' && !intrusion.target && !intrusion.active && !intrusion.entryAt && !intrusion.exitAt;
-          add('alarm-idle', 'Kontroller alarmstatus', idle, idle ? 'Alarmen er frakoblet. Du kan fullføre oppsettet.' : 'Frakoble alarmen under Alarm før du tar House Guard i bruk.', 'alarm');
+          add('alarm-idle', t("Kontroller alarmstatus"), idle, idle ? t("Alarmen er frakoblet. Du kan fullføre oppsettet.") : t("Frakoble alarmen under Alarm før du tar House Guard i bruk."), 'alarm');
         }
       }
     }
@@ -96,25 +99,26 @@
     if (notificationNeeded) {
       const recipients = list(config.people?.notifications);
       const bad = recipients.filter(id => !personAvailable(id) || !person(id).athomId);
-      add('push-recipients', 'Mottakere av pushvarsler', recipients.length > 0 && !bad.length,
-        !recipients.length ? 'Velg hvem som skal motta pushvarsler under Personer.' : bad.length ? `Kontroller varselmottakerne: ${bad.map(name).join(', ')}.` : `${recipients.length} mottakere er valgt. Send et testvarsel for å sjekke mottak på telefonen.`, 'people');
+      add('push-recipients', t("Mottakere av pushvarsler"), recipients.length > 0 && !bad.length,
+        !recipients.length ? t("Velg hvem som skal motta pushvarsler under Personer.") : bad.length ? t("Kontroller varselmottakerne: {0}.", [bad.map(name).join(', ')]) : t("{0} mottakere er valgt. Send et testvarsel for å sjekke mottak på telefonen.", [recipients.length]), 'people');
     }
     for (const routine of activeRoutines) for (const action of list(routine.actions)) {
       if (action.kind !== 'flow') continue;
       const flow = list(catalog.flows).find(f => f.id === action.flowId && f.type === action.flowType);
-      const reason = !flow ? 'Flow-en mangler.' : flow.enabled === false ? 'Flow-en er deaktivert.' : flow.broken ? 'Flow-en har feil.' : flow.triggerable === false ? (flow.type === 'advanced' ? 'Advanced Flow trenger et Start-kort.' : 'Flow-en kan ikke startes direkte uten en tagg.') : flow.triggerable !== true ? 'Oppdater Flow-listen for å kontrollere om den kan startes.' : '';
+      const reason = !flow ? t("Flow-en mangler.") : flow.enabled === false ? t("Flow-en er deaktivert.") : flow.broken ? t("Flow-en har feil.") : flow.triggerable === false ? (flow.type === 'advanced' ? t("Advanced Flow trenger et Start-kort.") : t("Flow-en kan ikke startes direkte uten en tagg.")) : flow.triggerable !== true ? t("Oppdater Flow-listen for å kontrollere om den kan startes.") : '';
       const alarmEvent = alarmEvents.includes(routine.id);
       const target = alarmEvent ? { tab:'security', alarmTab:'notifications', id:'routine-'+routine.id } : !['away','home','night'].includes(routine.id) ? { tab:'routines', id:'routine-'+routine.id } : undefined;
-      add(`flow-${routine.id}-${action.id}`, `${routine.name || 'Rutine'}: ${flow?.name || 'Valgt Flow'}`, !reason,
-        reason || 'Flow-en er tilgjengelig og kan startes direkte.', alarmEvent ? 'alarm' : 'routines', true, target);
+      const routineName=typeof HouseGuardI18n==='undefined'?routine.name:HouseGuardI18n.routineName(routine);
+      add(`flow-${routine.id}-${action.id}`, `${routineName || t("Rutine")}: ${flow?.name || t("Valgt Flow")}`, !reason,
+        reason || t("Flow-en er tilgjengelig og kan startes direkte."), alarmEvent ? 'alarm' : 'routines', true, target);
     }
     if (config.night?.automatic) {
       const recipients = list(config.people?.questions);
-      add('night-questions', 'Mottakere av nattspørsmål', recipients.length > 0 && recipients.every(id => personAvailable(id) && !!person(id).athomId),
-        recipients.length ? 'Valgte mottakere må være tilgjengelige Homey-brukere.' : 'Velg hvem som skal få spørsmål om å starte natten.', 'night', true, { tab:'people', id:'people-selection' });
+      add('night-questions', t("Mottakere av nattspørsmål"), recipients.length > 0 && recipients.every(id => personAvailable(id) && !!person(id).athomId),
+        recipients.length ? t("Valgte mottakere må være tilgjengelige Homey-brukere.") : t("Velg hvem som skal få spørsmål om å starte natten."), 'night', true, { tab:'people', id:'people-selection' });
       const zone = status.zones?.[config.night.zoneId] || catalog.zones?.[config.night.zoneId];
-      add('night-zone', 'Sone for nattspørsmål', !!zone && (status.zones === undefined || typeof zone.active === 'boolean'),
-        'Velg en sone med kjent aktivitet. Nattspørsmålet sendes etter at sonen har vært rolig.', 'night', true, { tab:'routines', id:'night-activation-settings' });
+      add('night-zone', t("Sone for nattspørsmål"), !!zone && (status.zones === undefined || typeof zone.active === 'boolean'),
+        t("Velg en sone med kjent aktivitet. Nattspørsmålet sendes etter at sonen har vært rolig."), 'night', true, { tab:'routines', id:'night-activation-settings' });
     }
     return checks;
   }

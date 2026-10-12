@@ -4,8 +4,11 @@ const {Intrusion,ID:ALARM_ID}=require('../lib/intrusion');
 const Engine = require('../lib/engine');
 const { defaults } = require('../lib/config');
 const { action } = require('../lib/plans');
+const i18n = require('../lib/backend-i18n');
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.HG_PREVIEW_PORT || 4781);
+const previewLanguage = i18n.language(process.env.HG_PREVIEW_LANGUAGE || 'en');
+const previewHomey = { i18n: { getLanguage: () => previewLanguage } };
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw Error('Ugyldig lokal demoport');
 // Replay Homey's late stylesheet injection when checking the mobile settings layout.
 // The downloaded styles are private test artifacts, excluded from Homey packages.
@@ -45,8 +48,8 @@ const catalogue = { people, devices, zones: { 'demo-living': { id: 'demo-living'
 let intrusion;
 const snapshot = async () => { if(intrusion)devices[ALARM_ID]=intrusion.device(); for (const p of Object.values(people)) p.observedAt = clock(); return structuredClone({ connected: true, people, devices, sun:{available:true,dark:true,observedAt:clock()} }); };
 const reject = async () => { throw new Error('Demomodus har ingen sideeffekter'); };
-const engine = new Engine({ config, clock, adapter: { snapshot, set: reject, setAsleep: reject, emit: reject, timeline: reject, startFlow: reject } });
-intrusion=new Intrusion({config:engine.config,clock,emit:(type,payload)=>{engine.snapshot.devices[ALARM_ID]=intrusion.device();engine.event(type,payload);}});
+const engine = new Engine({ config, clock, adapter: { homey: previewHomey, snapshot, set: reject, setAsleep: reject, emit: reject, timeline: reject, startFlow: reject } });
+intrusion=new Intrusion({config:engine.config,clock,locale:()=>previewHomey,emit:(type,payload)=>{engine.snapshot.devices[ALARM_ID]=intrusion.device();engine.event(type,payload);}});
 // All delivery methods reject in this loopback-only demo. Synthetic hazard
 // scenarios can still show the real independent incident lifecycle.
 const environment=new(require('../lib/environment'))({getConfig:()=>({...engine.config,observation:false}),clock,adapter:engine.adapter,log:(...args)=>engine.log(...args)});
@@ -69,9 +72,9 @@ async function start() {
       if (url.pathname === '/_preview/homey.css' && homeyStyles) {
         res.setHeader('Content-Type','text/css; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end(homeyStyles);return;
       }
-      if (url.pathname === '/api/state') output = { version:require('../app.json').version, environment:environment.status(), controls:require('../lib/manual-controls').status(engine), sleepConnections:require('../lib/sleep-flows').selected(engine.config), intrusion:intrusion.status(), config: engine.config, status: engine.status(), catalog: catalogue, readiness:require('../lib/readiness')(engine.config,engine.snapshot,catalogue,engine.state,clock()), builtins:Object.fromEntries(engine.config.routines.map(r => [r.id,require('../lib/plans').builtins(r.id,engine.config,{},engine.facts())])) };
-      else if (url.pathname === '/api/preview' && req.method === 'POST') output = require('../lib/preview')(engine,body.id,body.config,catalogue,await snapshot());
-      else if (url.pathname === '/api/catalog') output = catalogue;
+      if (url.pathname === '/api/state') output = i18n.projectState({ language:previewLanguage, version:require('../app.json').version, environment:environment.status(), controls:require('../lib/manual-controls').status(engine), sleepConnections:require('../lib/sleep-flows').selected(engine.config), intrusion:intrusion.status(), config: engine.config, status: engine.status(), catalog: catalogue, readiness:require('../lib/readiness')(engine.config,engine.snapshot,catalogue,engine.state,clock()), builtins:Object.fromEntries(engine.config.routines.map(r => [r.id,require('../lib/plans').builtins(r.id,engine.config,{},engine.facts())])) },previewHomey);
+      else if (url.pathname === '/api/preview' && req.method === 'POST') output = i18n.projectPreview(require('../lib/preview')(engine,body.id,body.config,catalogue,await snapshot()),previewHomey);
+      else if (url.pathname === '/api/catalog') output = i18n.projectState({catalog:catalogue},previewHomey).catalog;
       else if (url.pathname === '/api/validate' && req.method === 'POST') output = require('../lib/config').validate(body);
       else if (url.pathname === '/api/config' && req.method === 'PUT') {
         if (body.revision !== engine.config.revision) throw new Error('Konfigurasjonen ble endret. Last siden på nytt.');
@@ -89,7 +92,7 @@ async function start() {
         else if (body.type === 'routine') engine.start(body.id);
         else if (body.type === 'refresh') await refresh();
         else throw new Error('Ukjent demokommando');
-        await engine.tick(); output = engine.status();
+        await engine.tick(); output = i18n.projectState({status:engine.status()},previewHomey).status;
       } else if (url.pathname === '/api/scenario' && req.method === 'POST') {
         if (body.scenario === 'away') for (const p of Object.values(people)) p.present = false;
         else if (body.scenario === 'return') people['demo-alex'].present = true;
@@ -99,19 +102,19 @@ async function start() {
         else if (body.scenario === 'alarmOff') { intrusion.mode('disarmed',await snapshot()); devices['demo-door'].capabilities.alarm_contact.value=false; }
         else if (['fire','water','fireOff','waterOff'].includes(body.scenario)) {const fire=body.scenario.startsWith('fire'),id=fire?'demo-smoke':'demo-water',cap=fire?'alarm_smoke':'alarm_water';devices[id].capabilities[cap].value=!body.scenario.endsWith('Off');environment.update(await snapshot());environment.tick();}
         else throw new Error('Ukjent scenario');
-        engine.ingest(await snapshot()); await engine.tick(); output = engine.status();
+        engine.ingest(await snapshot()); await engine.tick(); output = i18n.projectState({status:engine.status()},previewHomey).status;
       } else {
         const filename = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
-        if (!['index.html', 'ui.js', 'alarm-ui.js', 'environment-ui.js', 'environment-model.js', 'environment.css', 'button-feedback.js', 'style.css', 'setup-model.js', 'onboarding-model.js', 'setup-ui.js', 'autosave.js', 'homey.js'].includes(filename)) { res.writeHead(404); res.end(); return; }
-        if (filename === 'homey.js') { res.setHeader('Content-Type', 'application/javascript'); res.end(homeyStyles
+        if (!['index.html', 'i18n.js', 'translations.js', 'alarm-sensor-model.js', 'ui.js', 'alarm-ui.js', 'environment-ui.js', 'environment-model.js', 'environment.css', 'button-feedback.js', 'style.css', 'setup-model.js', 'onboarding-model.js', 'setup-ui.js', 'autosave.js', 'homey.js'].includes(filename)) { res.writeHead(404); res.end(); return; }
+        if (filename === 'homey.js') { res.setHeader('Content-Type', 'application/javascript'); res.end('window.HouseGuardPreviewLanguage='+JSON.stringify(previewLanguage)+';\n'+(homeyStyles
           ? "window.addEventListener('load',()=>{const link=document.createElement('link');link.rel='stylesheet';link.href='/_preview/homey.css';document.head.append(link);});"
-          : '/* Local preview: Homey bridge intentionally absent. */'); return; }
+          : '/* Local preview: Homey bridge intentionally absent. */')); return; }
         const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json' }[path.extname(filename)];
         res.setHeader('Content-Type', `${mime}; charset=utf-8`); res.setHeader('Cache-Control', 'no-store');
         res.end(fs.readFileSync(path.join(root, 'settings', filename))); return;
       }
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store'); res.end(JSON.stringify(output));
-    } catch (error) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: error.message })); }
+    } catch (error) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: i18n.error(error,previewHomey).message })); }
   });
   server.listen(port, '127.0.0.1', () => console.log('Demo: http://127.0.0.1:'+port+'/?demo=1'));
   const tick = setInterval(async () => {await refresh();await engine.tick();}, 1000);

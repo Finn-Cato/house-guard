@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),{testDirect
 const {HomeyAdapter}=require('../lib/homey-adapter'),{defaults}=require('../lib/config');
 function fixture(){
  const calls=[],store=new Map(),receipts=[],config=defaults();config.observation=false;config.people.notifications=['a','b'];
- const app={integrationTestCount:0,engine:{state:{generation:1},config,newDelivery:()=> 'delivery',deliveryResult:(...args)=>receipts.push(args)},homey:{settings:{set:(k,v)=>store.set(k,v)},setTimeout}};
+ const app={integrationTestCount:0,engine:{state:{generation:1},config,newDelivery:()=> 'delivery',deliveryResult:(...args)=>receipts.push(args)},homey:{i18n:{getLanguage:()=> 'no'},settings:{set:(k,v)=>store.set(k,v)},setTimeout}};
  app.homey.app=app;
  const api={devices:{getDevice:async({id})=>({id,name:id,available:true,images:[{id:'snapshot',type:'camera'}]})},flow:{
   getFlowCardAutocomplete:async()=>['a','b'].map(id=>({id,name:id,athomId:'account-'+id})),

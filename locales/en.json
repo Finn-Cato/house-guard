@@ -5,7 +5,7 @@
   },
   "alarm": {
     "device_name": "Alarm panel",
-    "not_selected": "Select House Guard built-in alarm in the app Security settings.",
+    "not_selected": "Select House Guard built-in alarm under Alarm in the app.",
     "unavailable": "Waiting for House Guard alarm status.",
     "observation": "Observation",
     "triggered": "Alarm triggered",
@@ -13,7 +13,10 @@
     "exit": "Exit delay",
     "disarmed": "Disarmed",
     "armed": "Armed",
-    "partially_armed": "Partially armed"
+    "partially_armed": "Partially armed",
+    "waiting_for": "Waiting for: __names__",
+    "disabled_sensors": "__count__ sensor(s) disabled by Flow",
+    "no_sensors": "No sensors are monitored"
   },
   "night": {
     "device_name": "Night mode",

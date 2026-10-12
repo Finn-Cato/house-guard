@@ -18,7 +18,7 @@ module.exports = class HouseGuard extends Homey.App {
       this.homey.settings.set(CONFIG_KEY, config);
     }
     const migrated = !!config.security.alarmDeviceId && config.security.alarmDeviceId !== ALARM_ID;
-    if (validStored && (storedConfig.environment === undefined || storedConfig.environment.waterHealth === undefined)) {
+    if (validStored && (storedConfig.environment === undefined || storedConfig.environment.waterHealth === undefined || storedConfig.environment.enabled !== true)) {
       config.revision++; this.homey.settings.set(CONFIG_KEY, config);
     }
     if (migrated) {
@@ -47,7 +47,7 @@ module.exports = class HouseGuard extends Homey.App {
       log: (message, details) => { this.engine.log(message, details); this.engine.save(); },
       emit: (event, context) => require('./lib/environment-flows').emit(this, event, context),
     });
-    this.intrusion = new Intrusion({config:this.engine.config,saved:this.homey.settings.get('houseguard.intrusion.v1') || {},
+    this.intrusion = new Intrusion({config:this.engine.config,saved:this.homey.settings.get('houseguard.intrusion.v1') || {},locale:()=>this.homey,
       persist:state=>{const json=JSON.stringify(state);if(json!==this.alarmSaved){this.homey.settings.set('houseguard.intrusion.v1',state);this.alarmSaved=json;}},
       emit:(type,payload)=>{this.engine.snapshot.devices[ALARM_ID]=this.intrusion.device();this.engine.event(type,payload);},
       changed:state=>this.alarmChanged(state)});
@@ -278,6 +278,8 @@ module.exports = class HouseGuard extends Homey.App {
     } finally { this.settingUpBridges = false; }
   }
   registerCards() {
+    const i18n=require('./lib/backend-i18n');
+    const run=handler=>async(...args)=>{try{return await handler(...args);}catch(error){throw i18n.error(error,this.homey);}};
     require('./lib/simple-flows').register(this);
     require('./lib/scene-flows').register(this);
     require('./lib/sleep-flows').register(this);
@@ -285,16 +287,16 @@ module.exports = class HouseGuard extends Homey.App {
     require('./lib/environment-flows').register(this);
 
     this.homey.flow.getActionCard('check_integration_access').registerRunListener(async () => {this.integrationTestCount=(this.integrationTestCount||0)+1;return true;});
-    this.homey.flow.getActionCard('set_mode').registerRunListener(async ({ mode }) => { await this.engine.manual(mode); return true; });
-    this.homey.flow.getActionCard('set_guest').registerRunListener(async ({ enabled }) => { await this.setGuestMode(enabled === 'true'); return true; });
+    this.homey.flow.getActionCard('set_mode').registerRunListener(run(async ({ mode }) => { await this.engine.manual(mode); return true; }));
+    this.homey.flow.getActionCard('set_guest').registerRunListener(run(async ({ enabled }) => { await this.setGuestMode(enabled === 'true'); return true; }));
     this.homey.flow.getActionCard('skip_night').registerRunListener(async () => { this.engine.skipNight(); return true; });
     const routine = this.homey.flow.getActionCard('start_routine');
-    routine.registerArgumentAutocompleteListener('routine', async query => this.engine.config.routines.filter(r => !require('./lib/guest-presence').retired(r.id) && r.name.toLowerCase().includes(query.toLowerCase())).map(r => ({ id: r.id, name: r.name })));
-    routine.registerRunListener(async ({ routine: selected }) => { this.engine.start(selected.id); return true; });
+    routine.registerArgumentAutocompleteListener('routine', async query => this.engine.config.routines.filter(r => !require('./lib/guest-presence').retired(r.id)).map(r => ({id:r.id,name:require('./lib/config').ROUTINES[r.id]?i18n.t(require('./lib/config').ROUTINES[r.id],{},this.homey):r.name})).filter(r=>r.name.toLowerCase().includes(query.toLowerCase())));
+    routine.registerRunListener(run(async ({ routine: selected }) => { this.engine.start(selected.id); return true; }));
 
-    this.homey.flow.getActionCard('zone_idle').registerRunListener(async ({ zone_id, minutes }) => {
+    this.homey.flow.getActionCard('zone_idle').registerRunListener(run(async ({ zone_id, minutes }) => {
       await this.refresh(); await this.engine.event('idle', { zoneId: zone_id, minutes }); return true;
-    });
+    }));
     this.homey.flow.getActionCard('night_answer').registerRunListener(async ({ request_id, person_id, answer }) => {
       try { this.engine.answer(request_id, person_id, answer); }
       catch (error) { this.engine.log(`Sent eller ugyldig nattsvar ignorert: ${error.message}`, { result: 'skipped' }); }

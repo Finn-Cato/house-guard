@@ -45,7 +45,7 @@ test('Custom routine switch blocks manual starts and preview agrees with fixed r
  h.config.routines.find(r=>r.id==='custom-test').enabled=true;h.engine.start('custom-test');await h.engine.tick();assert.deepEqual(h.calls,[['timeline','custom']]);
 });
 test('Configuration API rejects deleting a fixed routine and allows deleting a custom routine',async()=>{
- const previous=defaults();previous.routines.push({id:'custom-optional',name:'Optional',enabled:true,execution:'sequential',actions:[]});const homey={app:{engine:{config:previous}}};
+ const previous=defaults();previous.routines.push({id:'custom-optional',name:'Optional',enabled:true,execution:'sequential',actions:[]});const homey={i18n:{getLanguage:()=> 'no'},app:{engine:{config:previous}}};
  const bad=structuredClone(previous);bad.routines=bad.routines.filter(r=>r.id!=='morning');assert.throws(()=>protectRoutines(previous,bad),/kan ikke slettes/);await assert.rejects(()=>api.validateConfig({homey,body:bad}),/kan ikke slettes/);
  const good=structuredClone(previous);good.routines=good.routines.filter(r=>r.id!=='custom-optional');const saved=await api.validateConfig({homey,body:good});assert(!saved.routines.some(r=>r.id==='custom-optional'));
 });

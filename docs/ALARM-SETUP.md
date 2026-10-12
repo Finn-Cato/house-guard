@@ -33,6 +33,10 @@ Legg inn en [API-nøkkel](API-KEY.md) i veiviseren eller under **Innstillinger �
 
 ## Sensorer og prøving
 
+Fra 0.4.41 kan Shelly dør-/vindusensorer som bruker «Åpen-alarm», og Shelly-inngangen valgt som garasjeportstatus under **Lås og port**, velges under **Alarm → Sensorer** eller i veiviseren. Velg selv **Borte**, **Natt** og eventuell **Forsinket**; ingen sensor aktiveres automatisk. Enhetsfeil og kommandoknapper behandles ikke som dørkontakter.
+
+For portinngangen brukes åpen/lukket-verdien fra portoppsettet når sensoren velges. Verdien vises i alarmlisten og beholdes med sensorvalget. Hvis den skal endres, frakoble alarmen, fjern avkrysningene for denne sensoren og velg den på nytt etter endring av portoppsettet. Både dørkontakten og portinngangen kan aktiveres/deaktiveres fra de vanlige sensor-Flow-kortene.
+
 En kjent aktiv sensor ved tilkobling holdes midlertidig utenfor, mens øvrige sensorer overvåkes. House Guard sender vanlig push om dette til valgte mottakere. Sensoren tas automatisk med når den blir inaktiv. Ukjente eller utilgjengelige sensorer hindrer tilkobling.
 
 Testmodus og aktiv styring er fjernet som brukervalg. Nytt og importert oppsett venter på fullføring av veiviseren; eldre oppsett som var satt på pause må også fullføres eksplisitt. Sensorprøveknappene er fjernet. Test varsling under Varsler og handlinger og kontroller det fysiske alarmforløpet. Se [teststatus og begrensninger](TEST-REPORT.md).

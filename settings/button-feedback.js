@@ -2,6 +2,9 @@
 // Keep command controls locked while work runs, without making every available
 // button look unavailable. Renderers can still update their actual eligibility.
 (function(root) {
+  const t = (source, values = []) => typeof HouseGuardI18n === 'undefined' ? String(source).replace(/\{(\d+)\}/g, (_, index) => String(values[index] ?? '')) : HouseGuardI18n.t(source, values);
+  const locale = () => typeof HouseGuardI18n === 'undefined' ? 'nb-NO' : HouseGuardI18n.locale;
+
   const pending = new WeakMap();
   function disable(button, disabled, waiting = false) {
     disabled = !!disabled; waiting = !!waiting;
@@ -11,7 +14,7 @@
     if (!disabled && (waiting || state) && button.getAttribute('aria-busy') !== 'true') button.dataset.buttonWaiting = 'true';
     else delete button.dataset.buttonWaiting;
   }
-  async function run(button, work, {peers = [], label = 'Jobber …'} = {}) {
+  async function run(button, work, {peers = [], label = t("Jobber …")} = {}) {
     const group = [...new Set([button, ...peers])];
     if (button.disabled || group.some(item => pending.has(item))) return;
     const children = [...button.childNodes], minWidth = button.style.minWidth;

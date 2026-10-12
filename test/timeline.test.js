@@ -4,7 +4,7 @@ const {defaults,validate}=require('../lib/config'),{HomeyAdapter}=require('../li
 const {harness,step,add}=require('./helpers');
 function setup(type='normal',alsoTimeline=false,observation=false){
   const h=harness(c=>{c.observation=observation;c.people.notifications=['a','b'];c.bridges.notifications=true;add(c,'welcome',[step('notice',{kind:'notify',category:'notification',text:'Alarm i {zone}: {reason}',notificationType:type,...(type==='image'?{imageDeviceId:'camera'}:{}),alsoTimeline})]);});
-  const calls=[];const homey={flow:{getTriggerCard:id=>({trigger:async(tokens,state)=>calls.push({kind:'push',id,tokens,state})})},notifications:{createNotification:async data=>calls.push({kind:'timeline',...data})}};
+  const calls=[];const homey={i18n:{getLanguage:()=> 'no'},flow:{getTriggerCard:id=>({trigger:async(tokens,state)=>calls.push({kind:'push',id,tokens,state})})},notifications:{createNotification:async data=>calls.push({kind:'timeline',...data})}};
   const adapter=new HomeyAdapter(homey,()=>h.engine.config);adapter.snapshot=h.adapter.snapshot;h.engine.adapter=adapter;h.ingest();return {h,adapter,calls};
 }
 test('Existing notification types, recipients and camera survive validation unchanged',()=>{

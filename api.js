@@ -1,5 +1,7 @@
 'use strict';
-module.exports = {
+const i18n=require('./lib/backend-i18n');
+const handlers = {
+  async appApiAccess({homey}) { return require('./lib/api-access').appApiAccess(homey.app.adapter); },
   async alarmSounds({homey,body}) {
     const adapter=homey.app.adapter,device=adapter.catalogue.devices?.[body?.deviceId];
     if(!device?.driverId?.includes('sonos'))throw Error('Velg en Sonos-høyttaler.');
@@ -16,7 +18,7 @@ module.exports = {
   async validateConfig({ homey,body }) { if(homey?.app?.engine)require('./lib/config').protectRoutines(homey.app.engine.config,body);return require('./lib/config').validate(body); },
   async getState({ homey }) {
     const app = homey.app; app.adapter.catalogue.direct = app.adapter.direct?.status();
-    return { version:require('./app.json').version, direct:app.adapter.direct?.status(),
+    return { version:require('./app.json').version, language:i18n.language(homey), direct:app.adapter.direct?.status(),
       controls:require('./lib/manual-controls').status(app.engine), sleepConnections:require('./lib/sleep-flows').selected(app.engine.config),
       status:app.engine.status(), intrusion:app.intrusion?.status(), environment:app.environment?.status(),
       config:app.engine.config, catalog:app.adapter.catalogue,
@@ -52,3 +54,18 @@ module.exports = {
     return engine.status();
   },
 };
+// Language belongs to presentation; never rewrite saved configuration, user
+// names or custom messages to translate API responses.
+module.exports=Object.fromEntries(Object.entries(handlers).map(([name,handler])=>[name,async args=>{
+  try{
+    const value=await handler(args),homey=args?.homey;
+    if(name==='getState')return i18n.projectState(value,homey);
+    if(name==='previewRoutine')return i18n.projectPreview(value,homey);
+    if(name==='command')return i18n.projectState({status:value},homey).status;
+    if(name==='getCatalog')return i18n.projectState({catalog:value},homey).catalog;
+    if(name==='saveApiKey')return i18n.projectState({direct:value},homey).direct;
+    if(name==='testDirectConnection'&&value.results)for(const result of value.results)if(result.error)result.error=i18n.text(result.error,homey);
+    if(name==='checkIntegrationAccess')for(const result of Object.values(value))if(result?.reason)result.reason=i18n.text(result.reason,homey);
+    return value;
+  }catch(error){throw i18n.error(error,args?.homey);}
+}]));

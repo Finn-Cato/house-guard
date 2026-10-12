@@ -3,13 +3,16 @@
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.HouseGuardSetup = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+  const t = (source, values = []) => typeof HouseGuardI18n === 'undefined' ? String(source).replace(/\{(\d+)\}/g, (_, index) => String(values[index] ?? '')) : HouseGuardI18n.t(source, values);
+  const locale = () => typeof HouseGuardI18n === 'undefined' ? 'nb-NO' : HouseGuardI18n.locale;
+
   const routineIds = ['away','home','night'];
   const flowKey = flow => `${flow.type}:${flow.id}`;
   function flowChoices(catalog) {
     return (catalog.flows || []).map(flow => {
-      const reason = flow.enabled === false ? 'Deaktivert' : flow.broken ? 'Har feil' : flow.triggerable === false ? (flow.type === 'advanced' ? 'Mangler Start-kort' : 'Kan ikke startes uten tagg') : flow.triggerable !== true ? 'Oppdater Flow-listen' : '';
+      const reason = flow.enabled === false ? t("Deaktivert") : flow.broken ? t("Har feil") : flow.triggerable === false ? (flow.type === 'advanced' ? t("Mangler Start-kort") : t("Kan ikke startes uten tagg")) : flow.triggerable !== true ? t("Oppdater Flow-listen") : '';
       return { ...flow, key:flowKey(flow), reason, selectable:!reason };
-    }).sort((a,b) => a.name.localeCompare(b.name,'nb') || a.type.localeCompare(b.type) || a.id.localeCompare(b.id));
+    }).sort((a,b) => a.name.localeCompare(b.name,locale()) || a.type.localeCompare(b.type) || a.id.localeCompare(b.id));
   }
   function selections(config) {
     return Object.fromEntries(routineIds.map(id => {
@@ -22,27 +25,27 @@
   function draft(config, options, catalog) {
     const next = JSON.parse(JSON.stringify(config));
     const people = [...new Set(options.people)];
-    if (!people.length) throw new Error('Velg minst én person som teller som hjemme.');
-    if (people.some(id=>!catalog.people[id] || catalog.people[id].available === false)) throw new Error('En valgt person er utilgjengelig. Oppdater personlisten.');
+    if (!people.length) throw new Error(t("Velg minst én person som teller som hjemme."));
+    if (people.some(id=>!catalog.people[id] || catalog.people[id].available === false)) throw new Error(t("En valgt person er utilgjengelig. Oppdater personlisten."));
     next.people.presence = people;
     next.people.night = next.people.night.filter(id=>people.includes(id));
     if(options.useNightPeople) next.people.night = [...people];
     const choices = flowChoices(catalog);
     for(const [routineId, key] of Object.entries(options.flows || {})) {
-      if(!routineIds.includes(routineId)) throw new Error('Ukjent rutine.');
+      if(!routineIds.includes(routineId)) throw new Error(t("Ukjent rutine."));
       const selected = key ? choices.find(flow=>flow.key===key) : null;
-      if(key && (!selected || !selected.selectable)) throw new Error('Valgt Flow mangler, er deaktivert, har feil eller kan ikke startes direkte. Oppdater Flow-listen.');
+      if(key && (!selected || !selected.selectable)) throw new Error(t("Valgt Flow mangler, er deaktivert, har feil eller kan ikke startes direkte. Oppdater Flow-listen."));
       let routine=next.routines.find(r=>r.id===routineId);
-      if(!routine) {routine={id:routineId,name:{away:'Siste Person forlater',home:'Første Person som ankommer',night:'Aktivering av Nattmodus'}[routineId],enabled:true,execution:'sequential',actions:[]};next.routines.push(routine);}
+      if(!routine) {routine={id:routineId,name:{away:t("Siste Person forlater"),home:t("Første Person som ankommer"),night:t("Aktivering av Nattmodus")}[routineId],enabled:true,execution:'sequential',actions:[]};next.routines.push(routine);}
       const matches = a => selected && a.kind==='flow' && a.flowId===selected.id && a.flowType===selected.type;
       // Reuse a matching custom action instead of starting the same Flow twice.
       const keep = routine.actions.find(a=>a.setupManaged!==true && matches(a)) || routine.actions.find(matches);
       const removed = new Set(routine.actions.filter(a=>a.setupManaged===true && a!==keep).map(a=>a.id));
-      if(routine.actions.some(a=>!removed.has(a.id) && removed.has(a.dependsOn))) throw new Error('Et tidligere veiviservalg brukes av en avansert handling. Rediger denne rutinen under Rutiner.');
+      if(routine.actions.some(a=>!removed.has(a.id) && removed.has(a.dependsOn))) throw new Error(t("Et tidligere veiviservalg brukes av en avansert handling. Rediger denne rutinen under Rutiner."));
       routine.actions = routine.actions.filter(a=>!removed.has(a.id));
       if(selected && !keep) {
         const id = `setup-${routineId}-flow-${selected.id}`;
-        if(!/^[\w-]{1,100}$/.test(id) || routine.actions.some(a=>a.id===id)) throw new Error('Denne Flow-en må legges til under Rutiner.');
+        if(!/^[\w-]{1,100}$/.test(id) || routine.actions.some(a=>a.id===id)) throw new Error(t("Denne Flow-en må legges til under Rutiner."));
         routine.actions.push({id,kind:'flow',category:'lights',flowId:selected.id,flowType:selected.type,delaySeconds:0,onError:'continue',setupManaged:true});
       }
       if(selected){routine.enabled=true;delete routine.hidden;}

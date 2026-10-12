@@ -15,12 +15,12 @@ class Device {
  error(error){this.lastError=error;}
 }
 const file=path.resolve(__dirname,'../drivers/alarm-panel/device.js'),moduleStub={exports:{}};
-vm.runInNewContext(fs.readFileSync(file,'utf8'),{module:moduleStub,require:id=>{assert.equal(id,'homey');return {Device};}},{filename:file});
-function setup(){
+vm.runInNewContext(fs.readFileSync(file,'utf8'),{module:moduleStub,require:id=>id==='homey'?{Device}:require(path.resolve(path.dirname(file),id))},{filename:file});
+function setup(language='no'){
  const device=new moduleStub.exports(),app=new EventEmitter(),calls=[],timers=new Set();
  const state={selected:true,mode:'partially_armed',target:null,active:false,entryAt:null,observation:false,faults:[],bypassed:[]};
  app.getAlarmStatus=()=>structuredClone(state);app.setAlarmMode=async mode=>{calls.push(mode);Object.assign(state,{mode,active:false,target:null,entryAt:null});app.emit('intrusion_changed');};
- device.homey={app,__:key=>key.split('.').reduce((v,k)=>v[k],locale),setInterval:fn=>{timers.add(fn);return fn;},clearInterval:fn=>timers.delete(fn)};
+ device.homey={app,i18n:{getLanguage:()=>language},__:key=>key.split('.').reduce((v,k)=>v[k],language==='no'?locale:require('../locales/en.json')),setInterval:fn=>{timers.add(fn);return fn;},clearInterval:fn=>timers.delete(fn)};
  return {device,app,state,calls,timers};
 }
 test('Existing alarm panels migrate to status and dismiss only without sending mode commands',async()=>{
@@ -45,4 +45,10 @@ test('Panel reports Flow exclusions for the current mode and warns when no senso
  const s=setup();s.state.disabledSensors=[{mode:'armed'},{mode:'partially_armed'}];s.state.sensorCounts={armed:1,partially_armed:0};await s.device.onInit();
  assert.match(s.device.values.alarm_status,/1 sensor\(er\) deaktivert fra Flow/);assert.match(s.device.values.alarm_status,/Ingen sensorer overvåkes/);
  s.state.mode='armed';await s.device.sync();assert(!s.device.values.alarm_status.includes('Ingen sensorer'));assert.deepEqual(s.calls,[]);s.device.onUninit();
+});
+
+test('English panel status translates generated reasons and suffixes while preserving sensor names',async()=>{
+ const s=setup('en');Object.assign(s.state,{mode:'armed',active:true,context:{reason:'Brann: dør/vindu åpnet'},bypassed:[{name:'Velkomstlys'}],faults:['Ukjent sensor: Personer'],disabledSensors:[{mode:'armed'}],sensorCounts:{armed:0,partially_armed:0}});
+ await s.device.onInit();const status=s.device.values.alarm_status;
+ assert.equal(status,'Alarm triggered · Brann: door/window opened · Waiting for: Velkomstlys · 1 sensor(s) disabled by Flow · No sensors are monitored · Unknown sensor: Personer');assert.deepEqual(s.calls,[]);s.device.onUninit();
 });

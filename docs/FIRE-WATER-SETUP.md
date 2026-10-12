@@ -8,9 +8,9 @@ Brann og vann har eget oppsett i House Guard. Valgte sensorer overvåkes hele d�
 2. Velg mottakere under **Personer → Motta pushvarsler**. Disse mottar også brann- og vannvarsler, uansett hjemme- og sovestatus.
 3. Åpne **Brann og vann → Varsler og handlinger**. Brann og vann har hvert sitt oppsett. Velg vanlig eller kritisk push, tidslinje og eventuelle kamerabilder. Direkte push, kamera, Sonos og start av Flows bruker API-nøkkelen under Innstillinger.
 4. Velg eventuelle ekstra tiltak: Sonos-beskjed eller alarmlyd, lys som skal slås på, og en vanlig eller Advanced Flow som kan startes direkte.
-5. Når grunnoppsettet i House Guard er fullført, slå på **Overvåk valgte brann- og vannsensorer** under Oversikt.
+5. Fullfør grunnoppsettet i House Guard. Valgte sensorer overvåkes deretter automatisk, og Oversikt viser overvåkingsstatus. Det finnes ingen felles av/på-bryter.
 
-Endringene lagres automatisk. Overvåkingen er av i eksisterende oppsett til sensorer er valgt og funksjonen slås på. Se over eventuelle gamle brann- og vannflows før du aktiverer de samme handlingene i House Guard; appen endrer eller sletter ikke disse.
+Endringene lagres automatisk. Fra 0.4.42 overvåkes valgte sensorer selv om overvåkingen tidligere var slått av. Ingen sensor velges automatisk, og varsler og handlinger venter til grunnoppsettet er fullført. Du velger fortsatt sensorer og de enkelte varslene og tiltakene. Se over eventuelle gamle brann- og vannflows før du velger de samme handlingene i House Guard; appen endrer eller sletter ikke disse.
 
 Fra 0.4.39 vises hver brannvarsler én gang i sensorlisten, selv om den har både røyk-, varme- og brannalarm. Når du krysser av enheten, velges alle alarmtypene. Tidligere delvise valg beholdes og vises med en strek i krysset; kryss av enheten for å velge alle. Samlet status viser en aktiv alarm fra alle typene og opplyser om ukjent eller utilgjengelig status.
 

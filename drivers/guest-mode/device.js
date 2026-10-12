@@ -1,13 +1,14 @@
 'use strict';
 const Homey = require('homey');
+const i18n = require('../../lib/backend-i18n');
 
 module.exports = class GuestModeDevice extends Homey.Device {
   async onInit() {
     this.stopped = false;
     this.syncQueue = Promise.resolve();
     this.registerCapabilityListener('onoff', async value => {
-      await this.homey.app.setGuestMode(value);
-      await this.syncGuestMode();
+      try { await this.homey.app.setGuestMode(value); await this.syncGuestMode(); }
+      catch (error) { throw i18n.error(error,this.homey); }
     });
     this.unsubscribeGuest = this.homey.app.subscribeGuestMode(() => this.refreshGuestMode());
     // Also retries a failed capability update or an app that was still starting.
@@ -30,7 +31,7 @@ module.exports = class GuestModeDevice extends Homey.Device {
   async refreshGuestMode() {
     try { await this.syncGuestMode(); }
     catch (error) {
-      this.error('Gjestestatus kunne ikke oppdateres', error);
+      this.error(i18n.t('Gjestestatus kunne ikke oppdateres',{},this.homey), error);
       if (!this.stopped) await this.setUnavailable(this.homey.__('guest.unavailable')).catch(error => this.error(error));
     }
   }

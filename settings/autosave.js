@@ -3,6 +3,9 @@
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.HouseGuardAutosave = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+  const t = (source, values = []) => typeof HouseGuardI18n === 'undefined' ? String(source).replace(/\{(\d+)\}/g, (_, index) => String(values[index] ?? '')) : HouseGuardI18n.t(source, values);
+  const locale = () => typeof HouseGuardI18n === 'undefined' ? 'nb-NO' : HouseGuardI18n.locale;
+
   const clone = value => JSON.parse(JSON.stringify(value));
   function content(config) {
     const { revision, bridges, timeZone, ...editable } = config;
@@ -23,7 +26,7 @@
             const latest = await read();
             if (content(latest) !== content(saved) && content(latest) !== content(uncertainTarget)) {
               conflict = true;
-              throw new Error('Oppsettet er endret i en annen visning. Last inn lagret oppsett før du fortsetter.');
+              throw new Error(t("Oppsettet er endret i en annen visning. Last inn lagret oppsett før du fortsetter."));
             }
             accept(latest);
             if (!pending()) break;
@@ -40,7 +43,7 @@
             if (content(latest) === content(checked)) result = latest;
             else if (content(latest) !== content(saved)) {
               conflict = true;
-              throw new Error('Oppsettet er endret i en annen visning. Last inn lagret oppsett før du fortsetter.');
+              throw new Error(t("Oppsettet er endret i en annen visning. Last inn lagret oppsett før du fortsetter."));
             } else { accept(latest); throw failure; }
           }
           accept(result);
@@ -76,7 +79,7 @@
       },
       async flush() {
         await start();
-        if (error || conflict) throw error || new Error('Last inn lagret oppsett.');
+        if (error || conflict) throw error || new Error(t("Last inn lagret oppsett."));
       },
       recover() { if (uncertain && !conflict) return start(); },
       observe(value) {
@@ -85,7 +88,7 @@
         desired = clone(value); accept(value); emit('saved'); return true;
       },
       reset(value) {
-        if (running) throw new Error('Vent til lagringen er ferdig.');
+        if (running) throw new Error(t("Vent til lagringen er ferdig."));
         clearTimeout(timer); desired = clone(value); error = null; conflict = false; accept(value); emit('saved');
       },
     };

@@ -5,7 +5,7 @@
   },
   "alarm": {
     "device_name": "Alarmpanel",
-    "not_selected": "Velg House Guard innebygd alarm under Sikkerhet i appen.",
+    "not_selected": "Velg House Guard innebygd alarm under Alarm i appen.",
     "unavailable": "Venter på alarmstatus fra House Guard.",
     "observation": "Observasjon",
     "triggered": "Alarm utløst",
@@ -13,7 +13,10 @@
     "exit": "Utgangsforsinkelse",
     "disarmed": "Frakoblet",
     "armed": "Tilkoblet",
-    "partially_armed": "Delvis"
+    "partially_armed": "Delvis",
+    "waiting_for": "Venter på: __names__",
+    "disabled_sensors": "__count__ sensor(er) deaktivert fra Flow",
+    "no_sensors": "Ingen sensorer overvåkes"
   },
   "night": {
     "device_name": "Nattmodus",

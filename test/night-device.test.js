@@ -18,7 +18,7 @@ const App=load('app.js'),NightDevice=load('drivers/night-mode/device.js'),NightD
 function setup(customize=()=>{}){
  const h=harness(customize),app=new App(),timers=new Map();app.engine=h.engine;app.adapter=h.adapter;
  const saved=[];h.engine.persist=state=>{saved.push(structuredClone(state));app.publishNightMode();};
- const homey={app,__:key=>key==='night.device_name'?'Nattmodus':'Venter på nattstatus',setInterval:fn=>{const id={};timers.set(id,fn);return id;},clearInterval:id=>timers.delete(id)};
+ const homey={app,i18n:{getLanguage:()=> 'no'},__:key=>key==='night.device_name'?'Nattmodus':'Venter på nattstatus',setInterval:fn=>{const id={};timers.set(id,fn);return id;},clearInterval:id=>timers.delete(id)};
  app.homey=homey;const device=new NightDevice();device.homey=homey;h.ingest();
  const write=h.adapter.setAsleep;h.adapter.setAsleep=async(...args)=>{await write(...args);const [id,value]=args;h.person(id,h.snapshot.people[id].present,value);h.ingest();};
  return {h,app,homey,device,timers,saved};

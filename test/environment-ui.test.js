@@ -4,46 +4,9 @@ const {defaults,validate}=require('../lib/config');
 
 // A small DOM test double exercises the production event handlers and actual
 // settings markup. It cannot verify rendered pixels or replace mobile QA.
-function documentFixture(html) {
-  const camel=s=>s.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
-  let document;
-  class Node {
-    constructor(tag=null,text=''){this.tagName=tag?.toUpperCase();this.tag=tag;this.text=text;this.childNodes=[];this.dataset={};this.attributes={};this.listeners={};this.className='';this.value='';this.checked=false;this.disabled=false;this.open=false;this.hidden=false;
-      this.classList={add:(...names)=>{this.className=[...new Set([...this.className.split(/\s+/),...names])].filter(Boolean).join(' ');}};}
-    get children(){return this.childNodes.filter(n=>n.tag);}
-    get lastChild(){return this.childNodes.at(-1);}
-    get textContent(){return this.tag?this.childNodes.map(n=>n.textContent).join(''):this.text;}
-    set textContent(text){this.replaceChildren(new Node(null,String(text)));}
-    get isConnected(){let n=this;while(n){if(n===document)return true;n=n.parent;}return false;}
-    append(...nodes){for(let n of nodes){if(typeof n!=='object')n=new Node(null,String(n));n.parent=this;this.childNodes.push(n);}}
-    replaceChildren(...nodes){for(const n of this.childNodes)n.parent=null;this.childNodes=[];this.append(...nodes);}
-    setAttribute(name,value){this.attributes[name]=String(value);if(name.startsWith('data-'))this.dataset[camel(name.slice(5))]=String(value);else if(['open','hidden','checked','disabled'].includes(name))this[name]=true;else if(['id','class','type'].includes(name))this[name==='class'?'className':name]=String(value);}
-    getAttribute(name){return this.attributes[name];}
-    addEventListener(name,listener){(this.listeners[name]||=[]).push(listener);}
-    async fire(name,event={}){event.target=this;event.preventDefault||=()=>{};await this['on'+name]?.(event);for(const listener of this.listeners[name]||[])await listener(event);}
-    click(){return this.fire('click');}
-    focus(){document.activeElement=this;}
-    scrollIntoView(){}
-    checkValidity(){return this.type!=='number'||this.value!==''&&Number.isFinite(Number(this.value))&&(!this.min||Number(this.value)>=Number(this.min))&&(!this.max||Number(this.value)<=Number(this.max));}
-    querySelectorAll(selector){const matches=n=>{
-      if(!n.tag)return false;const tag=selector.match(/^[\w-]+/)?.[0];if(tag&&n.tag!==tag)return false;
-      for(const [,name,value]of selector.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)){
-        const current=name.startsWith('data-')?n.dataset[camel(name.slice(5))]:name==='open'?(n.open?'':undefined):n.attributes[name];if(value!==undefined?current!==value:current===undefined)return false;
-      }return true;
-    };const found=[];const walk=n=>{for(const child of n.childNodes){if(matches(child))found.push(child);walk(child);}};walk(this);return found;}
-    querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
-  }
-  document=new Node('#document');document.createElement=tag=>new Node(tag);document.createTextNode=text=>new Node(null,text);
-  document.getElementById=id=>{let found;const walk=n=>{if(n.id===id)found=n;for(const child of n.childNodes)walk(child);};walk(document);return found||null;};
-  const stack=[document],voids=new Set(['meta','link','input','br','hr','img','source']);
-  for(const token of html.match(/<\/?[\w-]+\b[^>]*>|[^<]+/g)||[]){
-    if(token.startsWith('</')){if(stack.length>1)stack.pop();continue;}
-    if(token.startsWith('<')){const tag=token.match(/^<([\w-]+)/)[1],node=new Node(tag);for(const [,name,value]of token.slice(tag.length+1,-1).matchAll(/([\w-]+)(?:="([^"]*)")?/g))node.setAttribute(name,value||'');stack.at(-1).append(node);if(!voids.has(tag)&&!token.endsWith('/>'))stack.push(node);}
-    else stack.at(-1).append(new Node(null,token));
-  }
-  return document;
-}
-function fixture() {
+const {documentFixture}=require('./helpers/settings-dom');
+
+function fixture(language) {
   const document=documentFixture(fs.readFileSync('settings/index.html','utf8')),config=defaults(),changes=[],requests=[],navigation=[];
   config.people.notifications=['alex'];
   const cap=(value,type='boolean',setable=false)=>({value,type,setable,getable:true});
@@ -54,6 +17,11 @@ function fixture() {
   for(let i=1;i<=4;i++)devices['camera'+i]={id:'camera'+i,name:'Kamera '+i,zone:'Ute',available:true,images:[{type:'camera'}],capabilities:{}};
   const data={catalog:{devices,people:{alex:{name:'Alex'}},flows:[{id:'normal',type:'normal',name:'Min Flow',enabled:true,triggerable:true},{id:'bad',type:'advanced',name:'Ikke startbar',triggerable:false}]},direct:{ready:true},environment:{enabled:false,observing:false,sensors:[],incidents:[],batches:[]}};
   const sandbox={window:{},document,HouseGuardEnvironmentModel:require('../settings/environment-model'),HouseGuardButtons:{run:async(button,fn)=>fn()},Map,Set,Date};
+  if(language!==undefined){
+    for(const file of ['translations.js','i18n.js'])vm.runInNewContext(fs.readFileSync('settings/'+file,'utf8'),sandbox,{filename:file});
+    sandbox.HouseGuardI18n=sandbox.window.HouseGuardI18n;sandbox.HouseGuardI18n.setLanguage(language);sandbox.HouseGuardI18n.apply(document);
+    vm.runInNewContext(fs.readFileSync('settings/environment-model.js','utf8'),sandbox,{filename:'environment-model.js'});sandbox.HouseGuardEnvironmentModel=sandbox.window.HouseGuardEnvironmentModel;
+  }
   vm.runInNewContext(fs.readFileSync('settings/environment-ui.js','utf8'),sandbox,{filename:'environment-ui.js'});
   for(const button of document.querySelectorAll('[data-tab]'))button.onclick=()=>navigation.push(button.dataset.tab);
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node;};
@@ -76,13 +44,13 @@ const sensorStatus=(h,deviceId,type='fire')=>sensorRow(h,deviceId,type).querySel
 
 test('Ny GUI finner vann- og røykvarslere og viser temperatur ved manglende første vannalarmverdi',()=>{
   const h=fixture(),text=h.document.getElementById('environment-sensors').textContent;
-  assert.match(text,/Ny vannsensor · Bad/);assert.match(text,/Ingen vannalarm rapportert ennå · 23 °C · Batteri 90 %/);assert.equal(h.label('Overvåk valgte brann- og vannsensorer').disabled,true);
+  assert.match(text,/Ny vannsensor · Bad/);assert.match(text,/Ingen vannalarm rapportert ennå · 23 °C · Batteri 90 %/);assert.equal(h.document.getElementById('environment-overview').querySelectorAll('input').length,0);
   assert(!h.document.getElementById('environment-sensors').querySelectorAll('label').some(n=>/Ytterdør|Downlights/.test(n.textContent)));assert.deepEqual(h.requests,[]);
 });
 
-test('Sensorvalg og overvåkingsbryter lagrer automatisk uten å starte Flows eller prøvealarm',async()=>{
+test('Sensorvalg lagrer automatisk uten overvåkingsbryter, Flow eller prøvealarm',async()=>{
   const h=fixture(),waterGroup=h.document.getElementById('environment-sensors').children.at(-1);await h.button('Velg alle i denne gruppen',waterGroup).click();
-  assert.deepEqual(structuredClone(h.config.environment.sensors),[{deviceId:'water',capability:'alarm_water'}]);const enabled=h.label('Overvåk valgte brann- og vannsensorer');assert.equal(enabled.disabled,false);enabled.checked=true;await enabled.fire('change');assert.equal(h.config.environment.enabled,true);validate(h.config);assert(h.changes.length);assert.deepEqual(h.requests,[]);
+  assert.deepEqual(structuredClone(h.config.environment.sensors),[{deviceId:'water',capability:'alarm_water'}]);assert.equal(h.document.getElementById('environment-overview').querySelectorAll('input').length,0);assert.equal(h.config.environment.enabled,true);validate(h.config);assert(h.changes.length);assert.deepEqual(h.requests,[]);
 });
 
 test('Bytte av vannstyring nullstiller bekreftelsen atomisk før en eneste lagring',async()=>{
@@ -143,7 +111,7 @@ test('Felles avkrysning velger alle brannalarmtyper og fjerner bare denne enhete
   h.config.environment.sensors.push({deviceId:'water',capability:'alarm_water'});h.config.environment.enabled=true;h.render();
   check=sensorCheck(h,'smoke');check.checked=false;await check.fire('change');
   assert.deepEqual(structuredClone(h.config.environment.sensors),[{deviceId:'water',capability:'alarm_water'}]);assert.equal(h.config.environment.enabled,true);
-  check=sensorCheck(h,'water','water');check.checked=false;await check.fire('change');assert.equal(h.config.environment.enabled,false);assert.equal(h.config.environment.sensors.length,0);
+  check=sensorCheck(h,'water','water');check.checked=false;await check.fire('change');assert.equal(h.config.environment.enabled,true);assert.equal(h.config.environment.sensors.length,0);assert.match(h.document.getElementById('environment-monitoring-state').textContent,/De overvåkes automatisk/);
   assert.deepEqual(h.config.environment.responses,responses);assert.deepEqual(h.requests,[]);validate(h.config);
 });
 
@@ -196,4 +164,30 @@ test('Aktive hendelser beholder status per alarmtype etter at sensorradene er sa
   let text=h.document.getElementById('environment-incidents').textContent;assert.match(text,/Venter på ny alarmstatus/);assert.doesNotMatch(text,/ikke lenger valgt/);
   h.data.environment.sensors[0].available=false;h.ui.renderStatus(h.ctx);assert.match(h.document.getElementById('environment-incidents').textContent,/Sensoren er utilgjengelig; alarmhendelsen beholdes/);
   h.config.environment.sensors=[{deviceId:'smoke',capability:'alarm_smoke'}];h.ui.renderStatus(h.ctx);assert.match(h.document.getElementById('environment-incidents').textContent,/Sensoren er ikke lenger valgt/);assert.deepEqual(h.requests,[]);
+});
+
+test('English settings show translated sensor states, controls and diagnostics while device/person/Flow names stay untouched',async()=>{
+  const h=fixture('en');
+  assert.equal(h.document.querySelector('[data-tab="people"]').textContent.trim(),'People');
+  assert.equal(h.document.querySelector('[data-tab="environment"]').textContent.trim(),'Fire and water');
+  assert.match(h.document.getElementById('environment-sensors').textContent,/Ny vannsensor · Bad/);
+  assert.match(h.document.getElementById('environment-sensors').textContent,/No water alarm state reported yet · 23 °C · Battery 90 %/);
+  assert.equal(h.document.getElementById('environment-overview').querySelectorAll('input').length,0);
+  assert.match(h.document.getElementById('environment-overview').textContent,/monitored automatically/);
+  assert(h.document.getElementById('environment-responses').textContent.includes('Alex'));
+  const flows=h.document.querySelector('[aria-label="Add Flow for Fire"]');assert.equal(flows.items[0].label,'Min Flow');
+  h.data.environment.incidents=[{id:'english-fire',type:'fire',active:true,startedAt:Date.now(),sensors:[{deviceId:'smoke',capability:'alarm_smoke',name:'Røykvarsler',zone:'Soverom',active:true}]}];
+  h.ui.renderStatus(h.ctx);assert.match(h.document.getElementById('environment-incidents').textContent,/Fire – alarm detected/);assert(h.button('I have seen the notification'));
+  const testSection=h.document.querySelector('[data-environment-section="fire-test"]');await h.button('Test critical push',testSection).click();
+  assert.match(testSection.textContent,/Homey accepted the test notification\. Check your phone\./);
+  assert.deepEqual(h.requests,[{method:'POST',path:'/direct-test',body:{type:'push',notificationType:'critical',environmentType:'fire'}}]);
+});
+
+test('Norwegian Homey language retains native UI and translated static accessibility labels',()=>{
+  const h=fixture('nb-NO');
+  assert.equal(h.document.querySelector('[data-tab="people"]').textContent.trim(),'Personer');
+  assert.match(h.document.getElementById('environment-sensors').textContent,/Ingen vannalarm rapportert ennå/);
+  assert.equal(h.document.getElementById('environment-overview').querySelectorAll('input').length,0);assert.match(h.document.getElementById('environment-overview').textContent,/overvåkes automatisk/);
+  assert.equal(h.document.getElementById('direct-api-key').getAttribute('placeholder'),'Lim inn ny nøkkel');
+  assert.equal(h.document.getElementById('setup-dialog').querySelector('[aria-label]').getAttribute('aria-label'),'Lukk veiviseren');
 });

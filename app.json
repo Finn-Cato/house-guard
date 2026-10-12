@@ -1,6 +1,6 @@
 {
   "id": "no.husmodus",
-  "version": "0.4.39",
+  "version": "0.4.42",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -23,6 +23,13 @@
   ],
   "author": {
     "name": "House Guard"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Finn-Cato"
+      }
+    ]
   },
   "source": "https://github.com/5olvik/house-guard",
   "support": "https://github.com/5olvik/house-guard/issues",
@@ -189,6 +196,22 @@
     }
   ],
   "api": {
+    "appApiAccess": {
+      "method": "GET",
+      "path": "/api-access"
+    },
+    "alarmSounds": {
+      "method": "POST",
+      "path": "/alarm-sounds"
+    },
+    "testDirectConnection": {
+      "method": "POST",
+      "path": "/direct-test"
+    },
+    "saveApiKey": {
+      "method": "put",
+      "path": "/api-key"
+    },
     "checkIntegrationAccess": {
       "method": "POST",
       "path": "/integration-access"
@@ -220,18 +243,6 @@
     "setupBridges": {
       "method": "POST",
       "path": "/bridges"
-    },
-    "saveApiKey": {
-      "method": "put",
-      "path": "/api-key"
-    },
-    "testDirectConnection": {
-      "method": "POST",
-      "path": "/direct-test"
-    },
-    "alarmSounds": {
-      "method": "POST",
-      "path": "/alarm-sounds"
     }
   },
   "flow": {
@@ -241,6 +252,10 @@
         "title": {
           "no": "Registrer svar på nattspørsmålet",
           "en": "Record the answer to the night question"
+        },
+        "titleFormatted": {
+          "no": "Registrer [[answer]] på nattspørsmålet [[reply]]",
+          "en": "Record [[answer]] for night question [[reply]]"
         },
         "hint": {
           "no": "Bruk taggen Dette spørsmålet fra Når-kortet. Gamle svar ignoreres.",
@@ -252,7 +267,7 @@
             "type": "text",
             "title": {
               "no": "Dette spørsmålet",
-              "en": "Dette spørsmålet"
+              "en": "This question"
             }
           },
           {
@@ -260,7 +275,7 @@
             "type": "dropdown",
             "title": {
               "no": "Svar",
-              "en": "Svar"
+              "en": "Answer"
             },
             "values": [
               {
@@ -279,11 +294,7 @@
               }
             ]
           }
-        ],
-        "titleFormatted": {
-          "no": "Registrer svar på nattspørsmålet: [[reply]] · [[answer]]",
-          "en": "Record the answer to the night question: [[reply]] · [[answer]]"
-        }
+        ]
       },
       {
         "id": "check_integration_access",
@@ -299,13 +310,17 @@
           "no": "Sett modus i House Guard",
           "en": "Set House Guard mode"
         },
+        "titleFormatted": {
+          "no": "Sett husmodus til [[mode]]",
+          "en": "Set house mode to [[mode]]"
+        },
         "args": [
           {
             "name": "mode",
             "type": "dropdown",
             "title": {
               "no": "Modus",
-              "en": "Modus"
+              "en": "Mode"
             },
             "values": [
               {
@@ -338,11 +353,7 @@
               }
             ]
           }
-        ],
-        "titleFormatted": {
-          "no": "Sett modus i House Guard: [[mode]]",
-          "en": "Set House Guard mode: [[mode]]"
-        }
+        ]
       },
       {
         "id": "set_guest",
@@ -350,13 +361,17 @@
           "no": "Sett gjestemodus",
           "en": "Set guest mode"
         },
+        "titleFormatted": {
+          "no": "Sett gjestemodus [[enabled]]",
+          "en": "Set guest mode [[enabled]]"
+        },
         "args": [
           {
             "name": "enabled",
             "type": "dropdown",
             "title": {
               "no": "Gjestemodus",
-              "en": "Gjestemodus"
+              "en": "Guest mode"
             },
             "values": [
               {
@@ -375,11 +390,7 @@
               }
             ]
           }
-        ],
-        "titleFormatted": {
-          "no": "Sett gjestemodus: [[enabled]]",
-          "en": "Set guest mode: [[enabled]]"
-        }
+        ]
       },
       {
         "id": "skip_night",
@@ -394,6 +405,10 @@
           "no": "Start navngitt rutine",
           "en": "Start named routine"
         },
+        "titleFormatted": {
+          "no": "Start rutinen [[routine]]",
+          "en": "Start routine [[routine]]"
+        },
         "args": [
           {
             "name": "routine",
@@ -403,11 +418,7 @@
               "en": "Routine"
             }
           }
-        ],
-        "titleFormatted": {
-          "no": "Start navngitt rutine: [[routine]]",
-          "en": "Start named routine: [[routine]]"
-        }
+        ]
       },
       {
         "id": "zone_idle",
@@ -421,7 +432,7 @@
             "type": "text",
             "title": {
               "no": "Sone-ID",
-              "en": "Sone-ID"
+              "en": "Zone ID"
             }
           },
           {
@@ -429,7 +440,7 @@
             "type": "number",
             "title": {
               "no": "Inaktiv i minutter",
-              "en": "Inaktiv i minutter"
+              "en": "Inactive for minutes"
             }
           }
         ],
@@ -451,7 +462,7 @@
             "type": "text",
             "title": {
               "no": "Forespørsels-ID",
-              "en": "Forespørsels-ID"
+              "en": "Request ID"
             }
           },
           {
@@ -459,7 +470,7 @@
             "type": "text",
             "title": {
               "no": "Person-ID",
-              "en": "Person-ID"
+              "en": "Person ID"
             }
           },
           {
@@ -467,7 +478,7 @@
             "type": "dropdown",
             "title": {
               "no": "Svar",
-              "en": "Svar"
+              "en": "Answer"
             },
             "values": [
               {
@@ -512,7 +523,7 @@
             "type": "text",
             "title": {
               "no": "Leverings-ID",
-              "en": "Leverings-ID"
+              "en": "Delivery ID"
             }
           },
           {
@@ -520,7 +531,7 @@
             "type": "text",
             "title": {
               "no": "Mottaker-ID",
-              "en": "Mottaker-ID"
+              "en": "Recipient ID"
             }
           },
           {
@@ -528,21 +539,21 @@
             "type": "dropdown",
             "title": {
               "no": "Resultat",
-              "en": "Resultat"
+              "en": "Result"
             },
             "values": [
               {
                 "id": "accepted",
                 "title": {
                   "no": "Flow utført",
-                  "en": "Flow utført"
+                  "en": "Flow completed"
                 }
               },
               {
                 "id": "failed",
                 "title": {
                   "no": "Feil",
-                  "en": "Feil"
+                  "en": "Failed"
                 }
               }
             ]
@@ -552,7 +563,7 @@
             "type": "text",
             "title": {
               "no": "Detaljer",
-              "en": "Detaljer"
+              "en": "Details"
             }
           }
         ],
@@ -607,8 +618,8 @@
           }
         ],
         "titleFormatted": {
-          "no": "Deaktiver alarmsensor: [[sensor]] · [[mode]]",
-          "en": "Disable alarm sensor: [[sensor]] · [[mode]]"
+          "no": "Deaktiver [[sensor]] for [[mode]]",
+          "en": "Disable [[sensor]] for [[mode]]"
         }
       },
       {
@@ -656,8 +667,8 @@
           }
         ],
         "titleFormatted": {
-          "no": "Aktiver alarmsensor: [[sensor]] · [[mode]]",
-          "en": "Enable alarm sensor: [[sensor]] · [[mode]]"
+          "no": "Aktiver [[sensor]] for [[mode]]",
+          "en": "Enable [[sensor]] for [[mode]]"
         }
       },
       {
@@ -665,6 +676,10 @@
         "title": {
           "no": "Kvitter brann- eller vannvarselet",
           "en": "Acknowledge the fire or water notification"
+        },
+        "titleFormatted": {
+          "no": "Kvitter [[type]]varselet",
+          "en": "Acknowledge the [[type]] notification"
         },
         "args": [
           {
@@ -695,10 +710,6 @@
         "hint": {
           "no": "Stopper gjentatte House Guard-varsler. Sensoralarm og fysiske røykvarslere avstilles ikke.",
           "en": "Stops repeated House Guard notifications. Does not silence sensors or physical smoke alarms."
-        },
-        "titleFormatted": {
-          "no": "Kvitter brann- eller vannvarselet: [[type]]",
-          "en": "Acknowledge the fire or water notification: [[type]]"
         }
       }
     ],
@@ -827,6 +838,10 @@
           "no": "Brann- eller vannalarm er aktiv",
           "en": "A fire or water alarm is active"
         },
+        "titleFormatted": {
+          "no": "[[type]]alarm er !{{aktiv|inaktiv}}",
+          "en": "A [[type]] alarm is !{{active|inactive}}"
+        },
         "args": [
           {
             "name": "type",
@@ -852,11 +867,7 @@
               }
             ]
           }
-        ],
-        "titleFormatted": {
-          "no": "Brann- eller vannalarm er aktiv: [[type]]",
-          "en": "A fire or water alarm is active: [[type]]"
-        }
+        ]
       }
     ],
     "triggers": [
@@ -872,7 +883,7 @@
             "type": "string",
             "title": {
               "no": "Leverings-ID",
-              "en": "Leverings-ID"
+              "en": "Delivery ID"
             }
           },
           {
@@ -888,7 +899,7 @@
             "type": "string",
             "title": {
               "no": "Tekst",
-              "en": "Tekst"
+              "en": "Text"
             }
           },
           {
@@ -896,7 +907,7 @@
             "type": "string",
             "title": {
               "no": "Person-ID",
-              "en": "Person-ID"
+              "en": "Person ID"
             }
           },
           {
@@ -904,7 +915,7 @@
             "type": "string",
             "title": {
               "no": "Forespørsels-ID",
-              "en": "Forespørsels-ID"
+              "en": "Request ID"
             }
           },
           {
@@ -912,7 +923,7 @@
             "type": "string",
             "title": {
               "no": "Målenhet-ID",
-              "en": "Målenhet-ID"
+              "en": "Target device ID"
             }
           },
           {
@@ -920,7 +931,7 @@
             "type": "string",
             "title": {
               "no": "Alarm-ID",
-              "en": "Alarm-ID"
+              "en": "Alarm ID"
             }
           },
           {
@@ -928,7 +939,7 @@
             "type": "string",
             "title": {
               "no": "Sone",
-              "en": "Sone"
+              "en": "Zone"
             }
           },
           {
@@ -936,7 +947,7 @@
             "type": "string",
             "title": {
               "no": "Årsak",
-              "en": "Årsak"
+              "en": "Reason"
             }
           },
           {
@@ -944,7 +955,7 @@
             "type": "string",
             "title": {
               "no": "Varseltype",
-              "en": "Varseltype"
+              "en": "Notification type"
             }
           },
           {
@@ -952,7 +963,7 @@
             "type": "string",
             "title": {
               "no": "Kamera-ID",
-              "en": "Kamera-ID"
+              "en": "Camera ID"
             }
           },
           {
@@ -1375,6 +1386,10 @@
           "no": "Sensorene melder ikke lenger brann- eller vannalarm",
           "en": "Sensors no longer report a fire or water alarm"
         },
+        "titleFormatted": {
+          "no": "Sensorene melder ikke lenger [[type]]alarm",
+          "en": "Sensors no longer report a [[type]] alarm"
+        },
         "args": [
           {
             "name": "type",
@@ -1442,11 +1457,7 @@
               "en": "Alarm"
             }
           }
-        ],
-        "titleFormatted": {
-          "no": "Sensorene melder ikke lenger [[type]]alarm",
-          "en": "Sensors no longer report a [[type]] alarm"
-        }
+        ]
       }
     ]
   }

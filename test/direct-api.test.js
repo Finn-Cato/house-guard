@@ -5,7 +5,7 @@ const TOKEN='fake-test-token-never-a-real-secret';
 async function fixture(){
  const h=harness(c=>{c.people.notifications=['a','b'];c.bridges={notifications:false,questions:false,audio:false};}),stored=new Map(),calls=[];
  const client={sessions:{getSessionMe:async()=>({intersectedScopes:['homey.flow']})},flow:{triggerFlow:async x=>calls.push(['flow',x]),triggerAdvancedFlow:async x=>calls.push(['advanced',x]),runFlowCardAction:async x=>{calls.push(['action',x]);return true;},runFlowCardCondition:async x=>{calls.push(['question',x]);return {result:false};}},destroy:async()=>{}};
- const homey={api:{getLocalUrl:async()=> 'http://127.0.0.1'},settings:{get:k=>stored.get(k),set:(k,v)=>stored.set(k,v)},app:{engine:h.engine},flow:{getTriggerCard:()=>{throw Error('Helper Flow must not be used');}}};
+ const homey={i18n:{getLanguage:()=> 'no'},api:{getLocalUrl:async()=> 'http://127.0.0.1'},settings:{get:k=>stored.get(k),set:(k,v)=>stored.set(k,v)},app:{engine:h.engine},flow:{getTriggerCard:()=>{throw Error('Helper Flow must not be used');}}};
  const direct=new DirectApi(homey,async()=>client);await direct.configure(TOKEN);
  const adapter=new HomeyAdapter(homey,()=>h.engine.config);adapter.direct=direct;adapter.snapshot=h.adapter.snapshot;
  adapter.api={users:{getUser:async({id})=>h.snapshot.people[id]},devices:{getDevice:async({id})=>({id,available:true,images:[{id:'image-1',type:'camera'}]})},flow:{getFlow:async()=>({enabled:true,triggerable:true}),getAdvancedFlow:async()=>({enabled:true,triggerable:true}),getFlowCardAutocomplete:async({name})=>name==='sound'?[{id:'bell',name:'Bell'}]:['a','b'].map(id=>({id,name:id,athomId:'account-'+id}))}};

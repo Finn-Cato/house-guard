@@ -95,7 +95,7 @@ test('Tidslinjefeil logges én gang og påvirker ikke morgen, personstatus eller
 
 test('HomeyAdapter skriver direkte til appens Homey-tidslinje uten push eller API-nøkkel',async()=>{
  const h=night(),calls=[];
- const adapter=new HomeyAdapter({notifications:{createNotification:async data=>calls.push(data)}},()=>h.config);
+ const adapter=new HomeyAdapter({i18n:{getLanguage:()=> 'no'},notifications:{createNotification:async data=>calls.push(data)}},()=>h.config);
  adapter.snapshot=h.adapter.snapshot;h.engine.adapter=adapter;wake(h);await h.engine.tick();
  assert.deepEqual(calls,[{excerpt:text}]);assert.equal(h.engine.runs.find(r=>r.routineId==='wakeNotice').actions[0].status,'accepted');
 });
