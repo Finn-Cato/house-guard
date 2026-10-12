@@ -1,6 +1,6 @@
 # Certification response draft
 
-**Draft only. This response has not been sent, and the changes below have not been resubmitted to or published in the Homey App Store.** Candidate 0.4.42 is installed on Homey Pro, including the certification fixes from 0.4.40, Shelly alarm-sensor compatibility and automatic monitoring of selected fire/water sensors. Firmware 13.5.1 was confirmed during the 0.4.40 installation. The checks were limited to installation, configuration preservation and read-only inspection; no physical end-to-end test has been performed. Complete the [test plan](CERTIFICATION-TEST-PLAN.md), verify the release setting and update the evidence before submitting this response.
+**Draft only. This response has not been sent, and the changes below have not been resubmitted for certification or released in the stable channel.** Candidate 0.4.42 is installed on Homey Pro and published in the test channel as build 18 under NorthGuard Labs, including the certification fixes from 0.4.40, Shelly alarm-sensor compatibility and automatic monitoring of selected fire/water sensors. Firmware 13.5.1 was confirmed during the 0.4.40 installation. The checks were limited to installation, configuration preservation and read-only inspection; no physical end-to-end test has been performed. Complete the [test plan](CERTIFICATION-TEST-PLAN.md), verify the release setting and update the evidence before submitting this response.
 
 Dear Homey review team,
 

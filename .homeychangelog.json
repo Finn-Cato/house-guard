@@ -1,7 +1,7 @@
 {
   "0.4.42": {
-    "no": "Valgte brann- og vannsensorer overvåkes automatisk hele døgnet. Av/på-valget er fjernet, og et gammelt lagret av-valg kan ikke stoppe overvåkingen. Sensorutvalg og individuelle varsler og handlinger beholdes.",
-    "en": "Selected fire and water sensors are monitored automatically around the clock. The master switch has been removed, and an old saved off setting cannot stop monitoring. Sensor selections and individual notification and action settings are preserved."
+    "no": "Engelsk standard med norsk oversettelse, kortere butikkbeskrivelse, nytt appbilde og tydeligere Flow-tekster. Shelly dør-/vindusensorer og konfigurert garasjeportstatus kan velges som alarmsensorer. Valgte brann- og vannsensorer overvåkes automatisk hele døgnet uten en felles av/på-bryter. Eksisterende sensorvalg, varsler og handlinger beholdes.",
+    "en": "English default with Norwegian translations, shorter Store description, new app image and clearer Flow titles. Shelly door/window sensors and configured garage status can be selected as alarm sensors. Selected fire and water sensors are monitored automatically around the clock without a master switch. Existing sensor selections, notifications and actions are preserved."
   },
   "0.4.41": {
     "no": "Shelly dør-/vindusensorer og konfigurert garasjeportstatus kan velges som alarmsensorer for borte og natt. Riktig åpen/lukket-verdi beholdes, og sensorene støtter forsinkelser og unntak fra Flow. Eksisterende sensorvalg endres ikke automatisk.",
