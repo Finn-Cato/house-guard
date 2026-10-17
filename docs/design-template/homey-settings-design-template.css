@@ -1,0 +1,311 @@
+/* Portable Power Guard-inspired Homey settings design.
+   Add pg-design to <html>. Add pg-standalone only for a top-level webview.
+   This file is a template for another app, not loaded by Power Guard. */
+
+html.pg-design {
+  --pgd-text: #000000;
+  --pgd-body: #f2f2f7;
+  --pgd-card: #ffffff;
+  --pgd-surface: #f5f5f7;
+  --pgd-border: #e0e0e5;
+  --pgd-border-light: #f0f0f5;
+  --pgd-input-border: #d1d1d6;
+  --pgd-brand: #e8622a;
+  --pgd-brand-soft: rgba(232,68,26,.08);
+  --pgd-green: #22c55e;
+  --pgd-green-soft: rgba(34,197,94,.08);
+  --pgd-blue: #007aff;
+  --pgd-blue-soft: rgba(0,122,255,.08);
+  --pgd-warning: #ff9500;
+  --pgd-warning-soft: rgba(255,149,0,.08);
+  --pgd-warning-border: rgba(255,149,0,.35);
+  --pgd-error: #ff3b30;
+  --pgd-error-soft: rgba(255,59,48,.08);
+  --pgd-error-border: rgba(255,59,48,.35);
+  --pgd-success-soft: rgba(52,199,89,.08);
+  --pgd-success-border: rgba(52,199,89,.35);
+  --pgd-shadow-sm: 0 1px 4px rgba(0,0,0,.07);
+  --pgd-shadow-md: 0 4px 16px rgba(0,0,0,.1);
+  --pgd-radius-card: 16px;
+  --pgd-radius-panel: 10px;
+  --pgd-radius-control: 8px;
+}
+
+html.pg-design.pg-standalone {
+  color-scheme: light dark;
+  background: var(--pgd-body);
+  color: var(--pgd-text);
+}
+
+/* Homey inverts the embedded web iframe itself. Only a top-level mobile
+   webview receives this dark palette, even if the web browser reports dark. */
+@media (prefers-color-scheme: dark) {
+  html.pg-design.pg-standalone {
+    --pgd-text: #ffffff;
+    --pgd-body: #101014;
+    --pgd-card: #1c1c22;
+    --pgd-surface: #25252d;
+    --pgd-border: #3b3b44;
+    --pgd-border-light: #303038;
+    --pgd-input-border: #555560;
+    --homey-color-white: var(--pgd-card);
+    --homey-color-body: var(--pgd-body);
+    --homey-color-text: var(--pgd-text);
+    --homey-color-text-light: var(--pgd-text);
+  }
+}
+
+html.pg-design body {
+  background: var(--pgd-body);
+  color: var(--pgd-text);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Homey's stylesheet can load later and turn labels grey. */
+html.pg-design body label { color: var(--pgd-text) !important; }
+
+html.pg-design .pgd-container { max-width: 760px; margin: 0 auto; padding: 12px 8px 40px; }
+html.pg-design .pgd-page-title { margin: 0 0 4px; color: var(--pgd-text); font-size: 22px; font-weight: 700; }
+html.pg-design .pgd-hero { margin-bottom: 16px; padding: 18px 20px 14px; border-radius: var(--pgd-radius-card); background: linear-gradient(135deg,var(--pgd-card),var(--pgd-body)); color: var(--pgd-text); }
+/* The embedded Homey window already shows the app name in its own title bar. */
+html.pg-design:not(.pg-standalone) .pgd-hero { padding: 10px 14px; border: 1px solid var(--pgd-border-light); border-radius: var(--pgd-radius-panel); background: var(--pgd-card); box-shadow: var(--pgd-shadow-sm); }
+html.pg-design:not(.pg-standalone) .pgd-hero .pgd-page-title { display: none; }
+
+html.pg-design .pgd-nav { display: flex; gap: 3px; margin-bottom: 16px; padding: 4px; border: 1px solid var(--pgd-border-light); border-radius: var(--pgd-radius-card); background: var(--pgd-card); box-shadow: var(--pgd-shadow-sm); }
+html.pg-design .pgd-tab { display: flex; flex: 1 1 0; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; min-height: 58px; padding: 8px 2px 7px; border: 1px solid transparent; border-bottom: 2px solid transparent; border-radius: var(--pgd-radius-panel); background: transparent; color: var(--pgd-text); font-size: 11px; font-weight: 600; cursor: pointer; }
+html.pg-design .pgd-tab.is-active { border-color: var(--pgd-border-light); border-bottom-color: var(--pgd-brand); border-radius: var(--pgd-radius-panel); background: var(--pgd-brand-soft); box-shadow: inset 0 -2px 0 var(--pgd-brand); font-weight: 700; }
+html.pg-design .pgd-tab:hover:not(.is-active) { background: var(--pgd-surface); }
+html.pg-design .pgd-tab:focus-visible { outline: 2px solid var(--pgd-blue); outline-offset: 2px; }
+html.pg-design .pgd-tab-icon { display: block; width: 20px; height: 20px; flex: none; }
+html.pg-design .pgd-tab-label { display: block; overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+
+html.pg-design .pgd-card {
+  margin-bottom: 12px;
+  padding: 16px 14px;
+  border: 1px solid var(--pgd-border-light);
+  border-radius: var(--pgd-radius-card);
+  background: var(--pgd-card);
+  color: var(--pgd-text);
+  box-shadow: var(--pgd-shadow-sm);
+}
+html.pg-design .pgd-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--pgd-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+html.pg-design .pgd-card-title::before {
+  content: '';
+  flex: none;
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--pgd-brand);
+}
+
+/* Green explanatory panel: the words, not the green color, state on/off. */
+html.pg-design .pgd-guidance {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--pgd-green);
+  border-left-width: 4px;
+  border-radius: var(--pgd-radius-panel);
+  background: var(--pgd-green-soft);
+  color: var(--pgd-text);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+html.pg-design .pgd-guidance-title { display: block; font-weight: 700; }
+html.pg-design .pgd-guidance p { margin: 10px 0 0; white-space: pre-line; }
+html.pg-design .pgd-guidance-hint { font-size: 12px; }
+html.pg-design .pgd-guidance-content { margin-top: 10px; }
+
+/* Blue means that the whole item opens or navigates. */
+html.pg-design .pgd-disclosure {
+  margin-bottom: 12px;
+  border: 2px solid var(--pgd-blue);
+  border-radius: var(--pgd-radius-panel);
+  background: var(--pgd-blue-soft);
+  color: var(--pgd-text);
+  overflow: hidden;
+}
+html.pg-design .pgd-disclosure > summary {
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--pgd-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+html.pg-design .pgd-disclosure > summary::-webkit-details-marker { display: none; }
+html.pg-design .pgd-disclosure > summary::before { content: '\25B8'; display: inline-block; width: 18px; color: var(--pgd-blue); }
+html.pg-design .pgd-disclosure[open] > summary::before { content: '\25BE'; }
+html.pg-design .pgd-disclosure-body { padding: 0 12px 12px; color: var(--pgd-text); font-size: 12px; line-height: 1.6; }
+
+html.pg-design button.pgd-action {
+  padding: 8px 12px;
+  border: 1px solid var(--pgd-border) !important;
+  border-radius: var(--pgd-radius-panel) !important;
+  background: var(--pgd-surface) !important;
+  color: var(--pgd-text) !important;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html.pg-design button.pgd-action:hover { background: var(--pgd-border-light) !important; }
+html.pg-design button.pgd-action:focus-visible,
+html.pg-design .pgd-disclosure > summary:focus-visible { outline: 2px solid var(--pgd-blue); outline-offset: 2px; }
+
+html.pg-design .pgd-stat {
+  padding: 12px 14px;
+  border-left: 3px solid var(--pgd-brand);
+  border-radius: var(--pgd-radius-panel);
+  background: var(--pgd-surface);
+  color: var(--pgd-text);
+}
+html.pg-design .pgd-stat-label { margin-bottom: 4px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+html.pg-design .pgd-stat-value { font-size: 22px; font-weight: 800; }
+html.pg-design .pgd-stat-sub { margin-top: 2px; font-size: 11px; }
+
+html.pg-design .pgd-overview { min-width: 0; padding: 9px; border: 1px solid var(--pgd-border); border-radius: 9px; background: var(--pgd-surface); color: var(--pgd-text); }
+html.pg-design .pgd-overview-label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+html.pg-design .pgd-overview-value { margin-top: 3px; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+html.pg-design .pgd-overview-sub { margin-top: 2px; font-size: 11px; line-height: 1.4; }
+
+html.pg-design .pgd-section {
+  margin-top: 10px;
+  border: 1px solid var(--pgd-border);
+  border-radius: var(--pgd-radius-panel);
+  background: var(--pgd-surface);
+  color: var(--pgd-text);
+}
+html.pg-design .pgd-section > summary { padding: 9px 10px; cursor: pointer; font-size: 13px; font-weight: 700; }
+html.pg-design .pgd-section-body { padding: 0 10px 10px; border-top: 1px solid var(--pgd-border-light); }
+
+html.pg-design .pgd-device {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1.5px solid var(--pgd-border);
+  border-left: 3px solid var(--pgd-warning);
+  border-radius: 8px;
+  background: var(--pgd-surface);
+  color: var(--pgd-text);
+  box-shadow: var(--pgd-shadow-sm);
+}
+html.pg-design .pgd-device.is-warning { border-color: var(--pgd-warning-border); border-left: 4px solid var(--pgd-warning); background: var(--pgd-warning-soft); }
+html.pg-design .pgd-device.is-error { border-color: var(--pgd-error-border); border-left: 4px solid var(--pgd-error); background: var(--pgd-error-soft); }
+html.pg-design .pgd-device-name { font-size: 13px; font-weight: 600; }
+
+html.pg-design button.pgd-shortcut { display: grid; grid-template-columns: 28px minmax(0,1fr) 18px; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 2px solid var(--pgd-blue) !important; border-radius: var(--pgd-radius-panel) !important; background: var(--pgd-card) !important; color: var(--pgd-text) !important; box-shadow: var(--pgd-shadow-sm); text-align: left; cursor: pointer; }
+html.pg-design button.pgd-shortcut:hover { background: var(--pgd-blue-soft) !important; }
+html.pg-design button.pgd-shortcut:focus-visible { outline: 2px solid var(--pgd-blue); outline-offset: 2px; }
+html.pg-design .pgd-shortcut-icon { display: block; width: 22px; height: 22px; }
+html.pg-design .pgd-shortcut-copy { min-width: 0; }
+html.pg-design .pgd-shortcut-title { display: block; font-size: 14px; font-weight: 700; }
+html.pg-design .pgd-shortcut-desc { display: block; margin-top: 2px; font-size: 12px; line-height: 1.35; }
+html.pg-design .pgd-shortcut-arrow { color: var(--pgd-blue); font-size: 22px; line-height: 1; text-align: right; }
+
+html.pg-design .pgd-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--pgd-border-light); }
+html.pg-design .pgd-row:last-child { border-bottom: 0; }
+html.pg-design .pgd-label { display: block; font-size: 13px; font-weight: 500; }
+html.pg-design .pgd-hint { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; }
+html.pg-design .pgd-field { min-width: 0; padding: 6px 8px; border: 1px solid var(--pgd-input-border); border-radius: var(--pgd-radius-control); background: var(--pgd-card); color: var(--pgd-text); font-size: 13px; }
+
+html.pg-design .pgd-badge { display: inline-flex; align-items: center; padding: 3px 7px; border: 1px solid var(--pgd-border); border-radius: 999px; background: var(--pgd-surface); color: var(--pgd-text); font-size: 10px; font-weight: 700; line-height: 1.2; }
+html.pg-design .pgd-badge.is-on { border-color: var(--pgd-success-border); background: var(--pgd-success-soft); }
+html.pg-design .pgd-badge.is-off { border-color: var(--pgd-warning-border); background: var(--pgd-warning-soft); }
+html.pg-design .pgd-badge.is-error { border-color: var(--pgd-error-border); background: var(--pgd-error-soft); }
+
+html.pg-design .pgd-alert { margin-bottom: 14px; padding: 10px 14px; border-radius: var(--pgd-radius-panel); color: var(--pgd-text); font-size: 13px; overflow-wrap: break-word; }
+html.pg-design .pgd-alert.is-warning { background: var(--pgd-warning-soft); border: 1px solid var(--pgd-warning-border); border-left: 4px solid var(--pgd-warning); }
+html.pg-design .pgd-alert.is-error { background: var(--pgd-error-soft); border: 1px solid var(--pgd-error-border); border-left: 4px solid var(--pgd-error); }
+
+html.pg-design .pgd-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.45); }
+html.pg-design .pgd-dialog { width: min(100%,420px); max-height: 85vh; overflow: auto; padding: 20px; border-radius: var(--pgd-radius-card); background: var(--pgd-card); color: var(--pgd-text); box-shadow: var(--pgd-shadow-md); }
+
+@media (max-width: 600px) {
+  html.pg-design .pgd-container { max-width: 100%; padding: 6px 4px 30px; }
+  html.pg-design .pgd-nav { gap: 2px; margin-bottom: 10px; padding: 3px; border-radius: 10px; }
+  html.pg-design .pgd-tab { min-height: 52px; padding: 7px 2px 6px; font-size: 10px; }
+  html.pg-design .pgd-tab-icon { width: 18px; height: 18px; }
+  html.pg-design button.pgd-shortcut { gap: 10px; padding: 10px 11px; }
+  html.pg-design .pgd-card { margin-bottom: 8px; padding: 10px 6px; border-radius: 8px; }
+  html.pg-design .pgd-row { gap: 6px; padding: 7px 0; flex-wrap: wrap; }
+  html.pg-design .pgd-stat { padding: 8px; }
+}
+
+html.pg-design .pgd-save-status { display:block; position:sticky; top:0; z-index:3; margin:0 0 10px; padding:6px 8px; border-radius:var(--pgd-radius-control); background:var(--pgd-surface); font-size:12px; color:var(--pgd-text); }
+html.pg-design .pgd-save-status[data-state='saved'] { color:var(--pgd-green); }
+html.pg-design .pgd-save-status[data-state='error'] { color:var(--pgd-error); }
+
+
+
+/* Equal grid-row cards keep their controls aligned without a fixed height. */
+html.pg-design .pgd-charger-card { display:flex; flex-direction:column; min-width:0; border-top:2px solid transparent; border-right:2px solid transparent; border-bottom:2px solid transparent; }
+html.pg-design .pgd-charger-content { flex:1; }
+
+/* Active charging only: the application must remove is-charging on pause/read failure. */
+html.pg-design .pgd-charger-card.is-charging { animation:pgd-charger-edge 2.4s ease-in-out infinite; }
+@keyframes pgd-charger-edge {
+  0%, 100% { border-left-color:var(--pgd-brand); }
+  50% { border-left-color:color-mix(in srgb, var(--pgd-brand) 35%, transparent); }
+}
+html.pg-design.pgd-motion-paused .pgd-charger-card.is-charging { animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce) {
+  html.pg-design .pgd-charger-card.is-charging { animation:none; }
+}
+
+/* Read-only diagnostic evidence; restore open state during rendering. */
+html.pg-design .pgd-development-details { margin-top:6px; border:2px solid var(--pgd-blue); border-radius:10px; padding:5px 8px; background:var(--pgd-surface); }
+html.pg-design .pgd-development-details summary { cursor:pointer; font-size:12px; }
+html.pg-design .pgd-development-details pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; color:var(--pgd-text); margin:6px 0; }
+
+/* Setup wizard: fixed actions, scrollable explanations, one active step. */
+html.pg-design .pgd-wizard { display:flex; flex-direction:column; width:min(100%,480px); max-height:calc(100dvh - 24px); overflow:hidden; padding:18px; border:1px solid var(--pgd-border); border-radius:16px; background:var(--pgd-card); color:var(--pgd-text); }
+html.pg-design .pgd-wizard-body { min-height:0; overflow:auto; overscroll-behavior:contain; }
+html.pg-design .pgd-wizard-actions { display:flex; flex-wrap:wrap; flex-shrink:0; gap:8px; padding-top:10px; margin-top:16px; border-top:1px solid var(--pgd-border); }
+html.pg-design .pgd-wizard-actions button { flex:1 1 130px; min-height:44px; border:2px solid var(--pgd-blue) !important; border-radius:10px !important; background:var(--pgd-blue-soft) !important; color:var(--pgd-text) !important; }
+html.pg-design .pgd-wizard-progress { display:flex; flex-shrink:0; gap:5px; margin:12px 0; }
+html.pg-design .pgd-wizard-progress span { flex:1; height:4px; border-radius:4px; background:var(--pgd-border); }
+html.pg-design .pgd-wizard-progress [aria-current=step] { background:var(--pgd-brand); }
+
+/* Readable wizard confirmations and optional guidance. */
+html.pg-design .pgd-wizard label { font-size:13px !important; text-transform:none !important; color:var(--pgd-text) !important; }
+html.pg-design .pgd-wizard-help { margin:12px 0; padding:0 10px; border:2px solid var(--pgd-blue); border-radius:10px; background:var(--pgd-blue-soft); font-size:13px; }
+html.pg-design .pgd-wizard-help summary { padding:10px 0; cursor:pointer; font-weight:600; }
+
+/* Read-only information beside a heading: 28px symbol, 44px touch target. */
+html.pg-design .pgd-info-button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 44px; width:44px; height:44px; padding:0 !important; border:0 !important; border-radius:10px !important; background:transparent !important; color:var(--pgd-text) !important; cursor:pointer; }
+html.pg-design .pgd-info-symbol { display:flex; align-items:center; justify-content:center; box-sizing:border-box; width:28px; height:28px; border:2px solid var(--pgd-blue); border-radius:10px; background:var(--pgd-blue-soft); }
+html.pg-design .pgd-info-symbol svg { width:16px; height:16px; }
+html.pg-design .pgd-info-button:focus-visible { outline:2px solid var(--pgd-blue); outline-offset:1px; }
+html.pg-design .pgd-info-dialog { box-sizing:border-box; width:calc(100% - 32px); max-width:420px; max-height:85vh; margin:auto; padding:0; border:1px solid var(--pgd-border); border-radius:16px; background:var(--pgd-card); color:var(--pgd-text); box-shadow:var(--pgd-shadow-md); }
+html.pg-design .pgd-info-dialog::backdrop { background:rgba(0,0,0,.4); }
+html.pg-design .pgd-info-dialog-body { padding:20px; }
+html.pg-design .pgd-info-dialog .pgd-info-close { display:block; width:100%; min-height:44px; margin-top:16px; padding:10px 14px; border:2px solid var(--pgd-blue) !important; border-radius:10px !important; background:var(--pgd-blue-soft) !important; color:var(--pgd-text) !important; font:inherit; cursor:pointer; }
+
+/* Compact information row: explanation on the left, current state on the right. */
+html.pg-design .pgd-info-row { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; }
+html.pg-design .pgd-info-row-label { display:flex; align-items:center; gap:4px; min-width:0; }
+html.pg-design .pgd-info-row-state { flex:none; font-size:12px; font-weight:700; }
+
+/* Optional navigation from explanatory dialogs; never a setting change. */
+html.pg-design .pgd-info-shortcuts { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+html.pg-design .pgd-info-dialog .pgd-info-shortcuts button { display:block; flex:1 1 140px; min-width:0; min-height:44px; margin:0; padding:10px 14px; border:2px solid var(--pgd-blue) !important; border-radius:10px !important; background:var(--pgd-blue-soft) !important; color:var(--pgd-text) !important; font:inherit; font-size:12px; cursor:pointer; }
+
+/* Related full-row controls share the same outer edges and closed height. */
+html.pg-design .pgd-full-row-stack { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+html.pg-design .pgd-full-row-panel { box-sizing:border-box; width:100%; min-width:0; margin:0; padding:0; border:0; }
+html.pg-design .pgd-full-row-control { display:flex; align-items:center; justify-content:space-between; gap:10px; box-sizing:border-box; width:100%; min-height:56px; margin:0; padding:8px 12px; border:2px solid var(--pgd-blue) !important; border-radius:10px !important; background:var(--pgd-blue-soft) !important; color:var(--pgd-text) !important; font:inherit; font-size:12px; line-height:1.4; cursor:pointer; list-style:none; }
+html.pg-design .pgd-full-row-control::-webkit-details-marker { display:none; }
+html.pg-design .pgd-full-row-control:focus-visible { outline:2px solid var(--pgd-blue); outline-offset:2px; }
+
+/* Diagnostic counts: equal columns and readable labels on narrow screens. */
+html.pg-design .pgd-diagnostic-counts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:8px 0; }
+html.pg-design .pgd-diagnostic-counts > div { min-width:0; background:var(--pgd-card); border:1px solid var(--pgd-border); border-radius:10px; padding:7px; font-size:12px; text-align:center; overflow-wrap:anywhere; }
+html.pg-design .pgd-diagnostic-counts b { display:block; font-size:20px; }

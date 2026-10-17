@@ -1,5 +1,7 @@
 /* Neutral controls keep the settings page calm. Orange marks current choices;
    blue is reserved for links and the expandable help row. */
+:root { --blue-soft: rgba(36, 94, 170, .08); }
+
 html body button.hy-nostyle:not(.tab-btn):not(.settings-link):not([role="tab"]):not(:disabled) {
   background: var(--bg-card) !important;
   color: var(--text-primary) !important;
@@ -53,7 +55,7 @@ html body #night-command-help {
   padding: 0 12px;
   border: 2px solid var(--blue);
   border-radius: 10px;
-  background: rgba(36, 94, 170, .08);
+  background: var(--blue-soft);
 }
 html body #night-command-help > summary {
   padding: 11px 0;
@@ -62,3 +64,42 @@ html body #night-command-help > summary {
 }
 html body #night-command-help > summary::marker { color: var(--blue); }
 html body #night-command-help[open] > summary { margin-bottom: 8px; }
+
+:root.pg-standalone { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  :root.pg-standalone {
+    --brand-soft: rgba(232, 68, 26, .18);
+    --text-primary: #ffffff;
+    --text-muted: #c4c4cc;
+    --bg-body: #101014;
+    --bg-card: #1c1c22;
+    --bg-surface: #25252d;
+    --border-color: #3b3b44;
+    --border-light: #303038;
+    --input-border: #555560;
+    --shadow-sm: 0 1px 4px rgba(0, 0, 0, .28);
+    --ok: #67d391;
+    --warning: #ffc266;
+    --error: #ff746b;
+    --blue: #6db6ff;
+    --blue-soft: rgba(109, 182, 255, .14);
+    --button-accent: #ff8a65;
+    --button-pressed: #e8622a;
+    --button-soft: rgba(255, 138, 101, .14);
+  }
+
+  :root.pg-standalone body .hero { background: linear-gradient(120deg, var(--bg-card), var(--bg-body)); }
+  :root.pg-standalone body .banner { background: #1b2c42; color: #c6ddff; border-color: #344d6e; }
+  :root.pg-standalone body .banner.warning { background: #392817; color: #ffd28a; border-color: #61451f; }
+  :root.pg-standalone body .banner.error,
+  :root.pg-standalone body .home-alarm.alarm-active { background: #381f22; border-color: var(--error); }
+  :root.pg-standalone body .home-alarm.alarm-active { color: var(--text-primary); }
+  :root.pg-standalone body .badge.ok { background: #193326; color: #8fe0ad; border-color: #315c40; }
+  :root.pg-standalone body .badge.warn { background: #392817; color: #ffd28a; border-color: #61451f; }
+  :root.pg-standalone body .avatar { background: #38251f; color: #ff9a78; }
+  :root.pg-standalone body .home-state[data-state="closed"] { color: #8fe0ad; background: #193326; border-color: #315c40; }
+  :root.pg-standalone body .home-state[data-state="open"] { color: #ffd28a; background: #392817; border-color: #61451f; }
+  :root.pg-standalone body .environment-incident { background: #381f22; }
+  :root.pg-standalone body .environment-maintenance { background: #392817; border-color: #61451f; }
+  :root.pg-standalone body .file-button { background: var(--bg-surface); color: var(--button-accent); }
+}
