@@ -1,4 +1,8 @@
 {
+  "0.4.44": {
+    "no": "Roligere innstillingsside med nøytrale handlingsknapper, oransje for valgte faner og aktive tilstander, og blått for hjelpenedtrekk og lenker. Selvstendig mobilvisning følger også mørk modus.",
+    "en": "Calmer settings page with neutral action buttons, orange for selected tabs and active states, and blue for expandable help and links. Standalone mobile view now supports dark mode."
+  },
   "0.4.43": {
     "no": "Luxvilkår for morgenlys kan bruke målinger opptil 72 timer gamle. Eksisterende luxvilkår under Deaktivering av Nattmodus oppdateres én gang til den nye grensen. Lysgrensen, valgte Flows og øvrige handlinger beholdes.",
     "en": "Morning light conditions can use lux readings up to 72 hours old. Existing lux conditions under Night mode deactivation are updated once to the new limit. Brightness thresholds, selected Flows and other actions are preserved."
