@@ -234,7 +234,8 @@
   <label><span data-i18n="Funksjon som skal kontrolleres">Capability to check</span><select id="condition-capability"></select></label>
   <label><span data-i18n="Sammenligning">Comparison</span><select id="condition-operator"><option value="eq" data-i18n="Er lik">Equals</option><option value="lt" data-i18n="Er mindre enn">Less than</option><option value="gt" data-i18n="Er større enn">Greater than</option></select></label>
   <label><span data-i18n="Sammenlign med">Compare with</span><input id="condition-value" placeholder="15, true, down …"></label>
-  <label><span data-i18n="Maks alder på tallmåling (sekunder)">Maximum age of numeric reading (seconds)</span><input id="condition-age" type="number" min="10" max="86400" value="600"></label>
+  <label><span data-i18n="Maks alder på tallmåling (sekunder)">Maximum age of numeric reading (seconds)</span><input id="condition-age" type="number" min="10" max="259200" value="600"></label>
+  <p class="hint full" id="condition-age-hint" data-i18n="Luxverdier kan være opptil 72 timer gamle." hidden>Lux readings can be up to 72 hours old.</p>
   <label><span data-i18n="Ved feil">On error</span><select id="action-error"><option value="stop" data-i18n="Stopp resten av rutinen">Stop the rest of the routine</option><option value="continue" data-i18n="Logg og fortsett">Log and continue</option></select></label>
   <label><span data-i18n="Vent på bekreftet tidligere handling">Wait for a confirmed earlier action</span><select id="action-dependency"></select></label>
   <label class="action-confirm"><span data-i18n="Bekreftelsesfrist (sekunder)">Confirmation deadline (seconds)</span><input id="action-confirm" type="number" min="1" max="300" value="60"></label>

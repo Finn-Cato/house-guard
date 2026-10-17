@@ -880,6 +880,7 @@
   "House Guard: {reason} · {zone}. Sensor: {sensorName}.": "House Guard: {reason} · {zone}. Sensor: {sensorName}.",
   "Valgte brann- og vannsensorer overvåkes automatisk hele døgnet, uansett husmodus. Fysiske røykvarslere beholder sin egen alarm.": "Selected fire and water sensors are monitored automatically around the clock, in every house mode. Physical smoke detectors keep their own alarm.",
   "Velg brann- og vannsensorer under Sensorer. De overvåkes automatisk.": "Choose fire and water sensors under Sensors. They are monitored automatically.",
+  "Luxverdier kan være opptil 72 timer gamle.": "Lux readings can be up to 72 hours old.",
   "Åpen når inngangen er {0}.": "Open when the input is {0}.",
   " Åpen/lukket er hentet fra portoppsettet. Velg sensoren på nytt hvis portens åpen/lukket-verdi endres.": " Open/closed is taken from the garage setup. Select the sensor again if the garage open/closed value changes."
 };

@@ -21,6 +21,9 @@ module.exports = class HouseGuard extends Homey.App {
     if (validStored && (storedConfig.environment === undefined || storedConfig.environment.waterHealth === undefined || storedConfig.environment.enabled !== true)) {
       config.revision++; this.homey.settings.set(CONFIG_KEY, config);
     }
+    if (validStored && storedConfig.morning?.luxAgeVersion === undefined) {
+      config.revision++; this.homey.settings.set(CONFIG_KEY, config);
+    }
     if (migrated) {
       config.security.alarmDeviceId = ALARM_ID;
       config.security.intrusion = defaults().security.intrusion;

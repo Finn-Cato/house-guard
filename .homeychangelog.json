@@ -1,4 +1,8 @@
 {
+  "0.4.43": {
+    "no": "Luxvilkår for morgenlys kan bruke målinger opptil 72 timer gamle. Eksisterende luxvilkår under Deaktivering av Nattmodus oppdateres én gang til den nye grensen. Lysgrensen, valgte Flows og øvrige handlinger beholdes.",
+    "en": "Morning light conditions can use lux readings up to 72 hours old. Existing lux conditions under Night mode deactivation are updated once to the new limit. Brightness thresholds, selected Flows and other actions are preserved."
+  },
   "0.4.42": {
     "no": "Engelsk standard med norsk oversettelse, kortere butikkbeskrivelse, nytt appbilde og tydeligere Flow-tekster. Shelly dør-/vindusensorer og konfigurert garasjeportstatus kan velges som alarmsensorer. Valgte brann- og vannsensorer overvåkes automatisk hele døgnet uten en felles av/på-bryter. Eksisterende sensorvalg, varsler og handlinger beholdes.",
     "en": "English default with Norwegian translations, shorter Store description, new app image and clearer Flow titles. Shelly door/window sensors and configured garage status can be selected as alarm sensors. Selected fire and water sensors are monitored automatically around the clock without a master switch. Existing sensor selections, notifications and actions are preserved."

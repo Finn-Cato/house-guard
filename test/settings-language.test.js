@@ -24,6 +24,29 @@ async function settingsFixture(language,configure=()=>{},configureData=()=>{}){
   return {document,requests,config,data,i18n:window.HouseGuardI18n,onboarding:sandbox.HouseGuardOnboarding};
 }
 
+for (const language of ['en','no']) test('The action editor saves a 72-hour lux condition and keeps other measurement limits in '+language,async()=>{
+  const h=await settingsFixture(language,()=>{},data=>{
+    data.catalog.devices.lux={id:'lux',name:'Lysmåler',zone:'Kitchen',available:true,capabilities:{'measure_luminance.1':{type:'number',getable:true},measure_temperature:{type:'number',getable:true}}};
+    data.catalog.flows=[{id:'lights-on',name:'Lights on',type:'normal',enabled:true,triggerable:true}];
+  });
+  const card=h.document.getElementById('routine-morning'),add=card.querySelectorAll('button').find(b=>/^(\+ )?(Add action|Legg til handling)$/.test(b.textContent));assert(add);await add.click();
+  const get=id=>h.document.getElementById(id);
+  get('action-kind').value='flow';await get('action-kind').fire('change');get('action-flow').value='normal:lights-on';
+  get('condition-device').value='lux';await get('condition-device').fire('change');
+  get('condition-capability').value='measure_luminance.1';await get('condition-capability').fire('change');
+  assert.equal(get('condition-age').value,'259200');assert.equal(get('condition-age').max,'259200');assert.equal(get('condition-age-hint').hidden,false);
+  assert.equal(get('condition-age-hint').textContent,language==='en'?'Lux readings can be up to 72 hours old.':'Luxverdier kan være opptil 72 timer gamle.');
+  get('condition-operator').value='lt';get('condition-value').value='15';await get('action-form').fire('change');
+  assert.equal(get('action-error-message').textContent,'');
+  await get('action-form').fire('submit');
+  const saved=h.requests.filter(r=>r.method==='PUT'&&r.path==='/config').at(-1)?.body;assert(saved);
+  assert.equal(saved.routines.find(r=>r.id==='morning').actions[0].condition.maxAgeSeconds,259200);
+  assert.equal(saved.routines.find(r=>r.id==='morning').actions[0].flowId,'lights-on');
+  get('condition-capability').value='measure_temperature';await get('condition-capability').fire('change');
+  assert.equal(get('condition-age').value,'600');assert.equal(get('condition-age').max,'86400');assert.equal(get('condition-age-hint').hidden,true);
+  assert(h.requests.every(r=>['GET','PUT'].includes(r.method)||r.method==='POST'&&r.path==='/validate'));
+});
+
 test('Settings startup uses English by default before rendering every primary page',async()=>{
   const h=await settingsFixture(undefined);
   assert.equal(h.document.documentElement.getAttribute('lang'),'en');

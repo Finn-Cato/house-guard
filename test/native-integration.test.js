@@ -172,6 +172,17 @@ test('Upgrade removes an external panel, old pending runs and alarm state, prese
   assert.equal(app.engine.config.people.presence[0],'resident');assert.equal(app.engine.config.security.lockDeviceId,'lock');assert.equal(app.engine.state.guest,true);assert.equal(app.engine.state.alarm,null);assert.equal(app.intrusion.state.mode,'disarmed');
   assert.equal(app.heimdall,undefined);assert.equal(store['husmodus.config.v1'].revision,1);
 });
+
+test('Morning lux upgrade persists once and keeps armed alarm, residents and other actions unchanged',async()=>{
+ const old=defaults();delete old.morning.luxAgeVersion;old.revision=210;old.observation=false;old.security.alarmDeviceId=ID;
+ add(old,'morning',[step('morning-light-flow',{kind:'flow',flowId:'lights',flowType:'normal',category:'lights',condition:{deviceId:'lux',capability:'measure_luminance',operator:'lt',value:15,maxAgeSeconds:600}})]);
+ const before=structuredClone(old),alarm=new Intrusion({config:old,persist:()=>{}});alarm.state.mode='armed';let alarmStored;alarm.persist=state=>{alarmStored=state;};alarm.commit();
+ const store={'husmodus.config.v1':old,'houseguard.intrusion.v1':alarmStored,'husmodus.runtime.v1':{revision:210,runs:[{id:'old-run'}]}};
+ class Adapter{constructor(){this.catalogue={devices:{}};}async connect(){}}
+ const Upgrade=load('app.js',Adapter),init=async()=>{const app=new Upgrade();app.log=()=>{};app.error=()=>{};app.registerCards=()=>{};app.refresh=async()=>{};app.homey={clock:{getTimezone:()=>'Europe/Oslo'},settings:{get:key=>store[key],set:(key,value)=>store[key]=value},setInterval:()=>1};await app.onInit();return app;};
+ const app=await init(),expected=structuredClone(before);expected.morning.luxAgeVersion=1;expected.revision=211;expected.routines.find(r=>r.id==='morning').actions[0].condition.maxAgeSeconds=259200;
+ assert.deepEqual(app.engine.config,expected);assert.deepEqual(store['husmodus.config.v1'],expected);assert.deepEqual(app.engine.savedRuns,[]);assert.equal(app.intrusion.state.mode,'armed');assert.equal((await init()).engine.config.revision,211);
+});
 test('Manifest exposes only our alarm and removes all external alarm input cards and permission',()=>{
   const m=require('../app.json');assert.equal(m.permissions.some(p=>p.startsWith('homey:app:')),false);
   for(const id of ['integration_event','report_alarm_details','report_entry_delay','report_sensor_warning'])assert.equal(m.flow.actions.some(c=>c.id===id),false);

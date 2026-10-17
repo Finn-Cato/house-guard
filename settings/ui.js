@@ -481,6 +481,13 @@
   function updateConditionCapabilities(value = '') {
     const d = data.catalog.devices[$('condition-device').value];
     options($('condition-capability'), Object.entries(d?.capabilities || {}).filter(([, c]) => c.getable !== false).map(([id, c]) => ({ id, label: `${c.title || id} (${id})` })), value);
+    updateConditionAge();
+  }
+  function updateConditionAge() {
+    const lux = /^measure_luminance(?:\.[\w-]+)?$/.test($('condition-capability').value);
+    $('condition-age').max = lux ? '259200' : '86400';
+    $('condition-age').value = lux ? '259200' : '600';
+    $('condition-age-hint').hidden = !lux;
   }
   function openAction(routine, existing = null) {
     actionRoutine = routine; editedAction = existing; actionChanged = false; $('action-form').reset(); $('action-error-message').textContent = '';
@@ -543,6 +550,7 @@
     $('new-routine').onclick = () => { const routine={ id: `custom-${crypto.randomUUID()}`, name: t("Egen rutine {0}", [config.routines.filter(r => r.id.startsWith('custom')).length + 1]), enabled: true, execution: 'sequential', actions: [] };config.routines.push(routine);setDirty(true);renderRoutines();const card=$('routine-'+routine.id);revealSettings(card);card.scrollIntoView({block:'start'}); };
     $('action-kind').onchange = updateActionFields; $('action-device').onchange = updateCapabilities; $('action-capability').onchange=updateActionValue;$('action-value-choice').onchange=()=>{$('action-value').value=$('action-value-choice').value;};$('close-action').onclick = () => $('action-dialog').close();
     $('condition-device').onchange = () => updateConditionCapabilities();
+    $('condition-capability').onchange = () => updateConditionAge();
     function saveAction(immediate = false) {
       try {
         const kind = $('action-kind').value, a = { id: editedAction?.id || `action-${crypto.randomUUID()}`, kind, category: $('action-category').value, delaySeconds: Number($('action-delay').value), onError: $('action-error').value };
