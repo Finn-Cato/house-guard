@@ -2,9 +2,9 @@
 
 House Guard er en Homey Pro-app for hjemme-, borte-, natt- og gjestemodus. Veiviseren hjelper deg med forbindelse, beboere og funksjonene du velger: alarm, Homey-Flows, natt og morgen.
 
-**Siste publiserte testversjon er 0.4.42 (bygg 18).** [Installer fra Homeys testkanal](https://homey.app/a/no.husmodus/test/). Veiviseren fullføres før huset styres.
+**Siste publiserte testversjon er 0.4.43 (bygg 19).** [Installer fra Homeys testkanal](https://homey.app/a/no.husmodus/test/). Veiviseren fullføres før huset styres.
 
-**0.4.43 er lagt ut på GitHub og installert lokalt på Solviks Homey**, bekreftet 17. oktober 2026. Luxvilkår for morgenlys kan bruke målinger opptil 72 timer gamle. Eksisterende luxvilkår under Deaktivering av Nattmodus oppdateres én gang til den nye grensen; terskel, Flow-valg og øvrige handlinger beholdes. Nyere luxverdier gjelder fortsatt, og målinger eldre enn 72 timer eller med ukjent status stopper handlingen. Denne versjonen er foreløpig ikke lastet opp til testkanalen.
+**0.4.43 er lagt ut på GitHub, installert lokalt på Solviks Homey og publisert i App Stores testkanal under NorthGuard Labs**, bekreftet 17. oktober 2026. Luxvilkår for morgenlys kan bruke målinger opptil 72 timer gamle. Eksisterende luxvilkår under Deaktivering av Nattmodus oppdateres én gang til den nye grensen; terskel, Flow-valg og øvrige handlinger beholdes. Nyere luxverdier gjelder fortsatt, og målinger eldre enn 72 timer eller med ukjent status stopper handlingen.
 
 **0.4.42 er installert lokalt og publisert i testkanalen under NorthGuard Labs**, bekreftet 12. oktober 2026. Valgte brann- og vannsensorer overvåkes automatisk uten en felles av/på-bryter. Shelly dør-/vindusensorer og konfigurert garasjeportstatus kan velges som innbruddsalarmsensorer for borte og natt, med riktig åpen/lukket-verdi. Ingen sensor velges automatisk. Sertifiseringsrettingene fra 0.4.40 inngår også: engelsk standard med norsk oversettelse, korte butikkbeskrivelser, [lisensiert husfoto](ASSET-LICENSES.md) og formaterte Flow-tekster. Ny sertifiseringsinnsending og ordinær utgivelse er ikke gjennomført. Se [sertifiseringssvarutkast](docs/CERTIFICATION-RESPONSE.md) og [testplan](docs/CERTIFICATION-TEST-PLAN.md) for API-begrunnelsen og fysisk testing som gjenstår.
 
