@@ -170,6 +170,7 @@
       const current=target==='lock'?locked:typeof port==='boolean'?port===c.garage.openValue:undefined;
       document.querySelectorAll('[data-control="'+target+'"]').forEach(button=>{
         const value=button.dataset.controlValue==='true',option=control?.options[String(value)];
+        button.setAttribute('aria-pressed',String(typeof current==='boolean' && value===current));
         feedback.disable(button,!!s.observation || !option?.allowed || value===current,!!pending);
         button.title=pending?t("Venter på bekreftet status"):option?.reason || '';
       });
@@ -408,7 +409,7 @@
     $('home-alarm-bypassed').hidden=!s.bypassed?.length;
     $('home-alarm-bypassed').textContent=s.bypassed?.length?t("Venter på inaktive sensorer: ")+s.bypassed.map(sensor=>sensor.name+' ('+sensor.zone+')').join(', ')+t(". Resten av alarmen er tilkoblet."):'';
     feedback.disable($('home-disarm'),!s.selected || (!s.active && !s.target && !s.entryAt && s.mode==='disarmed'));
-    document.querySelectorAll('[data-alarm]').forEach(button=>{if(button.dataset.alarm!=='disarmed')feedback.disable(button,!!data.config.observation);});
+    document.querySelectorAll('[data-alarm]').forEach(button=>{button.setAttribute('aria-pressed',String(!!s.selected && button.dataset.alarm===currentMode));if(button.dataset.alarm!=='disarmed')feedback.disable(button,!!data.config.observation);});
     document.querySelectorAll('[data-sensor-flow-status]').forEach(node=>{const [id,cap]=JSON.parse(node.dataset.sensorFlowStatus),items=disabled.filter(d=>d.deviceId===id && d.capability===cap);node.textContent=items.length?t("Deaktivert fra Flow: ")+items.map(d=>modeName(d.mode)).join(t(" og "))+t(". Bruk «Aktiver alarmsensor» for å ta den med igjen."):'';node.hidden=!items.length;});
   }
   function renderIntrusion() {
